@@ -77,6 +77,14 @@ header h1::before{content:"◆";font-size:13px;color:var(--brass)}
 }
 #notif-toggle:hover,.btn-pill:hover{background:var(--sf3);border-color:var(--brass)}
 #notif-toggle.active{background:var(--g-bg);border-color:var(--g-br);color:var(--g-tx);font-weight:600}
+.notif-reminder{margin:-8px 0 18px;padding:12px 16px;border:1.5px solid var(--brass);border-radius:var(--rad);background:var(--sf);color:var(--tx);font-size:13px;line-height:1.5}
+.notif-reminder[hidden]{display:none}
+.notif-reminder strong{color:var(--forest)}
+body.dark-mode .notif-reminder strong{color:#dcead5}
+.notif-reminder details{margin-top:5px}
+.notif-reminder summary{color:var(--brass-deep);cursor:pointer;font-weight:600}
+body.dark-mode .notif-reminder summary{color:#d7b878}
+.notif-reminder ol{margin:6px 0 0 20px}
 
 .switch{position:relative;display:inline-block;width:44px;height:24px}
 .switch input{opacity:0;width:0;height:0}
@@ -324,6 +332,20 @@ a:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible,te
     <button id="notif-toggle" title="Recibir notificaciones de actividades">🔕 Activar notificaciones</button>
   </div>
 </header>
+
+<aside class="notif-reminder" id="notif-reminder" role="status" aria-live="polite" hidden>
+  <strong id="notif-reminder-title"></strong>
+  <span id="notif-reminder-message"></span>
+  <details id="notif-reminder-help">
+    <summary>Cómo habilitarlas</summary>
+    <ol>
+      <li>En Chrome, toca el icono a la izquierda de la dirección de esta página.</li>
+      <li>Abre <strong>Permisos</strong> o <strong>Configuración del sitio</strong> y permite las notificaciones.</li>
+      <li>Regresa aquí y pulsa <strong>Activar notificaciones</strong>.</li>
+    </ol>
+    <p>En computadora, abre los controles del sitio junto a la dirección y cambia Notificaciones a Permitir.</p>
+  </details>
+</aside>
 
 <div class="week-bar">
   <button class="week-nav" id="prev-week" title="Semana anterior" aria-label="Semana anterior"><span aria-hidden="true">&#8592;</span><span class="week-nav-text">Semana anterior</span></button>
@@ -857,12 +879,40 @@ async function getExistingSubscription() {
 async function refreshNotifButton() {
   const btn = $('notif-toggle');
   if (!btn) return;
-  if (!('Notification' in window) || !('serviceWorker' in navigator) || !('PushManager' in window)) { btn.disabled = true; btn.textContent = '🔕 No disponible'; return; }
-  if (Notification.permission === 'denied') { btn.classList.remove('active'); btn.textContent = '🔕 Notificaciones bloqueadas'; return; }
+  const reminder = $('notif-reminder');
+  const reminderTitle = $('notif-reminder-title');
+  const reminderMessage = $('notif-reminder-message');
+  const help = $('notif-reminder-help');
+  const showReminder = (title, message, showHelp = false) => {
+    if (reminder) reminder.hidden = false;
+    if (reminderTitle) reminderTitle.textContent = title;
+    if (reminderMessage) reminderMessage.textContent = message;
+    if (help) help.hidden = !showHelp;
+  };
+  if (!('Notification' in window) || !('serviceWorker' in navigator) || !('PushManager' in window)) {
+    btn.disabled = true; btn.textContent = '🔕 No disponible';
+    showReminder('Notificaciones no disponibles. ', 'Este navegador no ofrece notificaciones push.');
+    return;
+  }
+  btn.disabled = false;
+  if (Notification.permission === 'denied') {
+    btn.classList.remove('active'); btn.textContent = '🔒 Habilitar en Chrome';
+    btn.title = 'El permiso está bloqueado; abre las instrucciones para cambiarlo en Chrome.';
+    showReminder('Las notificaciones están bloqueadas. ', 'Permítelas en la configuración del sitio y luego vuelve a activarlas.', true);
+    return;
+  }
   const sub = await getExistingSubscription();
-  if (sub && subscriptionUsesCurrentVapidKey(sub)) { btn.classList.add('active'); btn.textContent = '🔔 Notificaciones activadas'; }
-  else if (sub) { btn.classList.remove('active'); btn.textContent = '🔄 Actualizar notificaciones'; }
-  else { btn.classList.remove('active'); btn.textContent = '🔕 Activar notificaciones'; }
+  if (sub && subscriptionUsesCurrentVapidKey(sub)) {
+    btn.classList.add('active'); btn.textContent = '🔔 Notificaciones activadas';
+    if (reminder) reminder.hidden = true;
+  } else if (sub) {
+    btn.classList.remove('active'); btn.textContent = '🔄 Actualizar notificaciones';
+    showReminder('Hay que actualizar la suscripción Push. ', 'Pulsa el botón para renovarla.');
+  } else {
+    btn.classList.remove('active'); btn.textContent = '🔕 Activar notificaciones';
+    showReminder(Notification.permission === 'granted' ? 'Falta registrar este dispositivo. ' : 'Activa las notificaciones para recibir avisos. ',
+      Notification.permission === 'granted' ? 'Pulsa el botón para completar la suscripción Push.' : 'Pulsa el botón y acepta el permiso cuando Chrome lo solicite.');
+  }
 }
 
 async function enablePushNotifications() {
@@ -939,6 +989,12 @@ async function restoreExistingPushSubscription() {
 
 $('notif-toggle').addEventListener('click', async () => {
   const btn = $('notif-toggle'); if (btn.disabled) return;
+  if ('Notification' in window && Notification.permission === 'denied') {
+    const help = $('notif-reminder-help');
+    if (help) help.open = true;
+    $('notif-reminder')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    return;
+  }
   const sub = await getExistingSubscription();
   if (sub && subscriptionUsesCurrentVapidKey(sub)) await disablePushNotifications();
   else await enablePushNotifications();
