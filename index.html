@@ -913,6 +913,30 @@ async function disablePushNotifications() {
   await refreshNotifButton();
 }
 
+// Si el servidor perdió una fila (por ejemplo, tras limpiar la tabla),
+// recuperamos el registro de un dispositivo que ya había dado permiso.
+// No pedimos permisos nuevos y no consultamos la lista de suscripciones.
+async function restoreExistingPushSubscription() {
+  if (!supabaseClient || !VAPID_OK || !('Notification' in window) || !('PushManager' in window) || Notification.permission !== 'granted') return;
+  try {
+    const reg = await navigator.serviceWorker.ready;
+    let sub = await reg.pushManager.getSubscription();
+    if (!sub) return;
+
+    if (!subscriptionUsesCurrentVapidKey(sub)) {
+      const oldRow = subToRow(sub);
+      if (!await sub.unsubscribe()) return;
+      await withRetry(() => supabaseClient.from('push_subscriptions').delete().eq('endpoint', oldRow.endpoint));
+      sub = await reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY) });
+    }
+
+    const { error } = await withRetry(() => supabaseClient.from('push_subscriptions').insert(subToRow(sub)));
+    if (error && error.code !== '23505') console.warn('No se pudo restaurar la suscripción Push:', error);
+  } catch (err) {
+    console.warn('No se pudo restaurar la suscripción Push:', err);
+  }
+}
+
 $('notif-toggle').addEventListener('click', async () => {
   const btn = $('notif-toggle'); if (btn.disabled) return;
   const sub = await getExistingSubscription();
@@ -936,7 +960,10 @@ function init() {
   }
 
   if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register('sw.js').then(reg => console.log('SW registered:', reg)).catch(err => console.error('SW error:', err));
+    navigator.serviceWorker.register('sw.js').then(reg => {
+      console.log('SW registered:', reg);
+      navigator.serviceWorker.ready.then(restoreExistingPushSubscription).catch(err => console.warn('No se pudo restaurar Push:', err));
+    }).catch(err => console.error('SW error:', err));
   }
 
   render();

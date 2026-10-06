@@ -125,7 +125,7 @@ supabase functions deploy send-push --project-ref TU_PROJECT_REF
 Después ejecuta `sql/02_notificaciones_push.sql` (con tu URL `https://TU_PROJECT_REF.supabase.co/functions/v1/send-push` y el mismo `CRON_SECRET`). `TU_PROJECT_REF` es el identificador de tu proyecto Supabase.
 
 Finalmente, en la app pulsa **"🔕 Activar notificaciones"** y acepta el permiso (una vez por cada dispositivo/navegador).
-> Si ese navegador ya tenía las notificaciones activadas con el proyecto anterior, pulsa el botón para **desactivarlas y vuelve a activarlas**: así se registra en la base nueva.
+> Si la tabla de suscripciones se limpia, cada navegador que conserve una suscripción válida y el permiso concedido la vuelve a registrar al abrir la app. Si el permiso no está concedido o la suscripción local ya no existe, activa las notificaciones desde el botón en ese dispositivo.
 
 **Qué se notifica** (a todos los dispositivos suscritos, con prioridad alta):
 
