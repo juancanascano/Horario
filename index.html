@@ -884,8 +884,10 @@ async function enablePushNotifications() {
     if (!sub) {
       sub = await reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY) });
     }
-    const { error } = await withRetry(() => supabaseClient.from('push_subscriptions').upsert(subToRow(sub), { onConflict: 'endpoint' }));
-    if (error) showToast(friendlyErrorMessage(error, 'activar notificaciones'), 'error');
+    const { error } = await withRetry(() => supabaseClient.from('push_subscriptions').insert(subToRow(sub)));
+    // No hacemos upsert: requiere lectura de la fila en conflicto, pero la
+    // tabla no expone SELECT al navegador para mantener privadas las suscripciones.
+    if (error && error.code !== '23505') showToast(friendlyErrorMessage(error, 'activar notificaciones'), 'error');
     else showToast('Notificaciones activadas!', 'update');
   } catch (err) {
     console.error(err);

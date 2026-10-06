@@ -38,20 +38,16 @@ create policy "anon puede suscribirse"
   with check (true);
 
 drop policy if exists "anon puede actualizar su suscripcion" on public.push_subscriptions;
-create policy "anon puede actualizar su suscripcion"
-  on public.push_subscriptions for update
-  to anon, authenticated
-  using (true)
-  with check (true);
 
 drop policy if exists "anon puede darse de baja" on public.push_subscriptions;
 create policy "anon puede darse de baja"
   on public.push_subscriptions for delete
   to anon, authenticated
   using (true);
--- (Sin política de SELECT para anon: nadie puede listar los suscritos
---  de otras personas desde el navegador; solo la Edge Function, que
---  usa la service_role key, puede leerlos.)
+-- (Sin políticas de SELECT ni UPDATE para anon: el navegador no puede
+-- listar ni modificar suscripciones existentes. Un endpoint duplicado
+-- se trata como ya registrado; la Edge Function usa service_role para leer.)
+revoke update on table public.push_subscriptions from anon, authenticated;
 
 -- 2) Configuración privada (URL de la función + secreto) --------------
 create schema if not exists private;

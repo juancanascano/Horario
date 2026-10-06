@@ -50,7 +50,7 @@ Se crean ejecutando el SQL del paso 9. Esta es la estructura:
 
 ## 8. Políticas RLS
 
-La app **no tiene login**, así que usa la clave pública (*anon*) desde el navegador. Las políticas del SQL permiten con esa clave: leer, insertar, actualizar y borrar en `actividades`; y solo insertar/actualizar/borrar (no leer) en `push_subscriptions`. Sin esas políticas todas las operaciones fallan.
+La app **no tiene login**, así que usa la clave pública (*anon*) desde el navegador. Las políticas del SQL permiten con esa clave: leer, insertar, actualizar y borrar en `actividades`; y solo insertar y borrar (no leer ni actualizar) en `push_subscriptions`. Un endpoint repetido se trata como ya registrado, sin consultar la fila privada. Sin esas políticas todas las operaciones fallan.
 
 > ⚠️ Consecuencia: **cualquiera que tenga el enlace de la app puede ver y editar el horario.** Es la misma situación que tenía el proyecto anterior y es inherente a quitar el login.
 
