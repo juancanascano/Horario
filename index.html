@@ -1,0 +1,1934 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Horario Escolar colmil</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#1f3d2b">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,500&family=Public+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+
+/* ============================================================
+   TOKENS — "Cuaderno de campo": bitácora escolar con acento
+   militar (colmil). Papel cálido + tinta bosque + bronce.
+   ============================================================ */
+:root{
+  --ink:#221f1a;
+  --paper:#f2ead9;
+  --paper-deep:#e9dfc8;
+
+  --forest:#1f3d2b;
+  --forest-deep:#12261a;
+  --brass:#a9813f;
+  --brass-deep:#7c5e2c;
+
+  /* estados de celda (mismas claves que usa el script, nuevos valores) */
+  --g-bg:#dbe6cd;--g-br:#5f8a4f;--g-tx:#2b4622;      /* sin tarea — salvia */
+  --y-bg:#f2dda3;--y-br:#c2952f;--y-tx:#6b4a09;      /* tarea — ocre */
+  --b-bg:#c7d6de;--b-br:#3e6c88;--b-tx:#15334a;      /* fase militar — acero */
+  --r-bg:#e7c2ba;--r-br:#a24736;--r-tx:#611f14;      /* reclamo — ladrillo */
+  --e-bg:#d6cde3;--e-br:#6b4d96;--e-tx:#3a2159;      /* examen — ciruela */
+  --f-bg:#e4ddcb;--f-tx:#8a8069;
+
+  --sf:#fbf7ee;--sf2:#f4eeda;--sf3:#ece3c9;
+  --bd:#d9cba9;
+  --tx:var(--ink);--tx2:#6c6350;--tx3:#a89b7c;
+  --rad:12px;--rad-s:7px;
+  --holiday-bg:#e2dbc7;
+}
+body.dark-mode{
+  --ink:#ece4cf;
+  --g-bg:#233d1c;--g-br:#4f7a41;--g-tx:#a9c99a;
+  --y-bg:#4a3608;--y-br:#8a6413;--y-tx:#f2d998;
+  --b-bg:#12283a;--b-br:#3e6c88;--b-tx:#a9c6d8;
+  --r-bg:#3d1811;--r-br:#a24736;--r-tx:#eec2b7;
+  --e-bg:#2a1f3d;--e-br:#8368ac;--e-tx:#d6c9ea;
+  --f-bg:#241f19;--f-tx:#8f8468;
+
+  --sf:#171310;--sf2:#1e1a15;--sf3:#28221b;
+  --bd:#3a3226;
+  --tx:#ece4cf;--tx2:#a89b7c;--tx3:#6c6350;
+  --holiday-bg:#211d17;
+}
+
+body{
+  font-family:'Public Sans',sans-serif;
+  color:var(--tx);
+  min-height:100vh;
+  padding:26px 16px 56px;
+  background:
+    radial-gradient(circle at 1px 1px, rgba(34,31,26,.05) 1px, transparent 0) 0 0/22px 22px,
+    var(--paper);
+  transition:background .2s;
+}
+body.dark-mode{
+  background:
+    radial-gradient(circle at 1px 1px, rgba(236,228,207,.04) 1px, transparent 0) 0 0/22px 22px,
+    #0d0b08;
+}
+.page{max-width:1080px;margin:0 auto}
+
+/* ---------- AUTH ---------- */
+.auth-container{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:80vh}
+.auth-card{
+  position:relative;background:var(--sf);border:1px solid var(--bd);border-radius:var(--rad);
+  padding:34px 30px 30px;width:100%;max-width:400px;box-shadow:0 18px 50px -20px rgba(18,38,26,.35);
+}
+.auth-card::before{
+  content:"";position:absolute;top:0;left:24px;right:24px;height:4px;
+  background:linear-gradient(90deg,var(--forest),var(--brass));border-radius:0 0 4px 4px;
+}
+.auth-card h2{
+  font-family:'Fraunces',serif;font-weight:600;font-size:24px;letter-spacing:-.2px;
+  margin-bottom:22px;text-align:center;color:var(--forest);
+}
+body.dark-mode .auth-card h2{color:#c9dcc0}
+.form-group{margin-bottom:15px}
+.form-group label{display:block;margin-bottom:6px;font-size:11.5px;font-weight:600;letter-spacing:.4px;text-transform:uppercase;color:var(--tx2)}
+.form-group input,.form-group select{
+  width:100%;padding:11px 12px;border:1.5px solid var(--bd);border-radius:var(--rad-s);
+  background:var(--sf2);color:var(--tx);font-size:15px;font-family:'Public Sans',sans-serif;transition:border-color .15s,box-shadow .15s;
+}
+.form-group input:focus,.form-group select:focus{outline:none;border-color:var(--forest);box-shadow:0 0 0 3px rgba(31,61,43,.12)}
+.btn-primary{
+  width:100%;padding:12px;background:var(--forest);color:#f2ead9;border:1.5px solid var(--forest-deep);
+  border-radius:var(--rad-s);font-size:14.5px;font-weight:600;letter-spacing:.3px;cursor:pointer;transition:filter .12s,transform .08s;
+}
+.btn-primary:hover{filter:brightness(1.12)}
+.btn-primary:active{transform:translateY(1px)}
+.toggle-auth{text-align:center;margin-top:16px;color:var(--tx2);font-size:13px;cursor:pointer;text-decoration:underline;text-underline-offset:2px}
+.toggle-auth:hover{color:var(--forest)}
+body.dark-mode .toggle-auth:hover{color:#c9dcc0}
+
+/* ---------- HEADER ---------- */
+header{display:flex;align-items:center;justify-content:space-between;margin-bottom:22px;gap:16px;flex-wrap:wrap}
+header h1{
+  font-family:'Fraunces',serif;font-weight:600;font-size:26px;letter-spacing:-.4px;margin:0;flex:1;
+  text-align:center;color:var(--forest);display:flex;align-items:center;justify-content:center;gap:10px;
+}
+body.dark-mode header h1{color:#dcead5}
+header h1::before{
+  content:"◆";font-size:13px;color:var(--brass);
+}
+.header-left{display:flex;align-items:center;gap:10px}
+.header-buttons{display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap}
+#notif-toggle,#logout-btn,#accesoq10,#calc-notas-btn{
+  border:1.5px solid var(--bd);background:var(--sf);border-radius:999px;padding:7px 14px;
+  font:inherit;font-size:12px;font-weight:500;cursor:pointer;display:inline-flex;align-items:center;gap:6px;
+  color:var(--tx);transition:background .15s,border-color .15s;
+}
+#notif-toggle:hover,#logout-btn:hover,#accesoq10:hover,#calc-notas-btn:hover{background:var(--sf3);border-color:var(--brass)}
+#notif-toggle.active{background:var(--g-bg);border-color:var(--g-br);color:var(--g-tx);font-weight:600}
+#accesoq10 a{color:inherit;text-decoration:none}
+
+.switch{position:relative;display:inline-block;width:44px;height:24px}
+.switch input{opacity:0;width:0;height:0}
+.slider{position:absolute;cursor:pointer;top:0;left:0;right:0;bottom:0;background-color:var(--sf3);border:1px solid var(--bd);transition:.3s;border-radius:26px}
+.slider:before{position:absolute;content:"";height:16px;width:16px;left:3px;bottom:3px;background-color:#fff;transition:.3s;border-radius:50%;box-shadow:0 1px 2px rgba(0,0,0,.3)}
+input:checked + .slider{background-color:var(--forest);border-color:var(--forest-deep)}
+input:checked + .slider:before{transform:translateX(20px)}
+.dark-mode-label{font-size:12px;color:var(--tx2);font-weight:500}
+
+/* ---------- SELECTOR DE GRADO ---------- */
+.grade-selector{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-bottom:18px}
+.grade-btn{
+  padding:8px 18px;border:1.5px solid var(--bd);background:var(--sf);border-radius:999px;cursor:pointer;
+  color:var(--tx2);font-weight:600;font-size:13.5px;transition:all .12s;
+}
+.grade-btn:hover{background:var(--sf3);color:var(--tx)}
+.grade-btn.active{background:var(--forest);border-color:var(--forest-deep);color:#f2ead9}
+
+/* ---------- BARRA DE SEMANA (estilo talonario/ticket) ---------- */
+.week-bar{
+  display:flex;align-items:center;justify-content:center;gap:16px;margin-bottom:20px;
+  background:var(--sf);border:1.5px solid var(--bd);border-radius:var(--rad);padding:14px 22px;
+  position:relative;box-shadow:0 6px 18px -12px rgba(18,38,26,.4);
+}
+.week-btn{
+  width:34px;height:34px;border-radius:50%;border:1.5px solid var(--bd);background:var(--sf2);cursor:pointer;
+  font-size:16px;display:flex;align-items:center;justify-content:center;color:var(--forest);transition:all .12s;flex-shrink:0;
+}
+.week-btn:hover{background:var(--forest);color:#f2ead9;border-color:var(--forest-deep)}
+.week-info{text-align:center;min-width:190px}
+.week-num{
+  font-family:'Fraunces',serif;font-size:19px;font-weight:600;color:var(--forest);letter-spacing:.2px;
+}
+body.dark-mode .week-num{color:#dcead5}
+.week-dates{font-size:11px;color:var(--tx2);font-family:'JetBrains Mono',monospace;margin-top:3px;letter-spacing:.3px}
+
+/* ---------- LEYENDA ---------- */
+.legend{display:flex;gap:16px;justify-content:center;flex-wrap:wrap;margin-bottom:18px}
+.legend-item{display:flex;align-items:center;gap:6px;font-size:11px;color:var(--tx2);font-weight:500}
+.legend-dot{width:11px;height:11px;border-radius:3px;border:1.5px solid}
+
+/* ---------- TABLA ---------- */
+.table-wrap{
+  overflow-x:auto;border-radius:var(--rad);border:1.5px solid var(--bd);background:var(--sf);
+  box-shadow:0 10px 30px -18px rgba(18,38,26,.45);
+}
+table{width:100%;border-collapse:collapse;table-layout:fixed;min-width:680px}
+thead th{
+  background:var(--forest);color:#e9e2cd;font-size:10.5px;font-weight:600;letter-spacing:.7px;
+  text-transform:uppercase;padding:11px 6px;border-bottom:1px solid var(--forest-deep);text-align:center;
+  font-family:'Public Sans',sans-serif;
+}
+thead th:first-child{width:74px;background:var(--forest-deep)}
+thead th.holiday-header{background:var(--holiday-bg);color:var(--tx3)}
+thead th.fri-head{background:var(--brass-deep);color:#f6ecd6}
+
+.time-cell{
+  background:var(--sf2);border-right:1px solid var(--bd);border-bottom:1px solid var(--bd);padding:6px 4px;
+  text-align:center;vertical-align:middle;font-family:'JetBrains Mono',monospace;font-size:10px;
+  color:var(--tx3);line-height:1.6;white-space:pre;font-weight:500;
+}
+.descanso-row td{
+  background:var(--f-bg);text-align:center;padding:6px;font-size:9.5px;font-weight:700;letter-spacing:1.6px;
+  color:var(--f-tx);text-transform:uppercase;border-bottom:1px solid var(--bd);font-family:'JetBrains Mono',monospace;
+}
+.gap-row td{background:var(--sf2);border-bottom:1px solid var(--bd);height:10px}
+
+.cell{
+  border-right:1px solid var(--bd);border-bottom:1px solid var(--bd);border-left:3px solid transparent;
+  padding:8px 9px;vertical-align:top;cursor:pointer;transition:filter .12s,transform .08s,border-color .12s;
+  min-height:54px;
+}
+.cell:last-child{border-right:none}
+.cell:hover{filter:brightness(.96);transform:scale(.997)}
+.cell:active{transform:scale(.99)}
+.cell.green{background:var(--g-bg);border-left-color:var(--g-br)}
+.cell.yellow{background:var(--y-bg);border-left-color:var(--y-br)}
+.cell.red{background:var(--r-bg);border-left-color:var(--r-br)}
+.cell.blue-exam{background:var(--e-bg);border-left-color:var(--e-br)}
+.cell.blue{background:var(--b-bg);border-left-color:var(--b-br)}
+.cell.blue-fri{background:var(--b-bg);border-left-color:var(--b-br)}
+.cell.holiday{background:var(--holiday-bg);opacity:.55;cursor:not-allowed;border-left-color:transparent}
+
+.mat-name{font-size:12px;font-weight:700;line-height:1.3;letter-spacing:.1px}
+.cell.green .mat-name{color:var(--g-tx)}
+.cell.yellow .mat-name{color:var(--y-tx)}
+.cell.red .mat-name{color:var(--r-tx)}
+.cell.blue-exam .mat-name{color:var(--e-tx)}
+.cell.blue .mat-name,.cell.blue-fri .mat-name{color:var(--b-tx)}
+
+.task-snippet{font-size:10.5px;margin-top:4px;line-height:1.35;opacity:.9;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
+.cell.yellow .task-snippet{color:var(--y-tx)}
+.cell.red .task-snippet{color:var(--r-tx)}
+.cell.blue-exam .task-snippet{color:var(--e-tx)}
+
+.due-badge{
+  display:inline-block;margin-top:4px;font-size:9px;background:rgba(255,255,255,.6);border-radius:4px;
+  padding:2px 6px;font-family:'JetBrains Mono',monospace;font-weight:600;
+}
+.cell.yellow .due-badge{color:var(--y-tx)}
+.cell.red .due-badge{color:var(--r-tx)}
+.cell.blue-exam .due-badge{color:var(--e-tx)}
+
+.notes-snippet{
+  font-size:9.5px;margin-top:5px;color:var(--tx2);font-style:italic;border-top:1px solid rgba(0,0,0,.08);
+  padding-top:3px;overflow:hidden;display:-webkit-box;-webkit-line-clamp:1;-webkit-box-orient:vertical;
+}
+
+.instructor-badge{font-size:10px;margin-top:4px;color:var(--b-tx);opacity:.85;font-style:italic}
+.task-snippet-blue{font-size:10.5px;margin-top:4px;color:var(--b-tx);opacity:.9;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
+.due-badge-blue{display:inline-block;margin-top:4px;font-size:9px;background:rgba(255,255,255,.6);border-radius:4px;padding:2px 6px;color:var(--b-tx);font-family:'JetBrains Mono',monospace;font-weight:600}
+
+.fri-full-row td.fri-header-cell{
+  background:var(--brass-deep);border-bottom:1px solid var(--bd);padding:7px 8px;font-size:10.5px;
+  font-weight:700;color:#f6ecd6;text-align:center;letter-spacing:.6px;text-transform:uppercase;
+}
+
+.event-badge{
+  background:var(--forest);color:#f2ead9;padding:2px 7px;border-radius:5px;font-size:9.5px;font-weight:700;
+  margin-top:4px;display:inline-block;letter-spacing:.2px;
+}
+body.dark-mode .event-badge{background:var(--brass-deep);color:#f6ecd6}
+
+/* ---------- PANEL DE TAREAS / EVENTOS / LOGS ---------- */
+.tasks-panel,.events-panel,.logs-panel{
+  margin-top:22px;background:var(--sf);border:1.5px solid var(--bd);border-radius:var(--rad);
+  padding:20px 22px;box-shadow:0 8px 22px -16px rgba(18,38,26,.4);
+}
+.tasks-panel h2,.events-panel h2,.logs-panel h2{
+  font-family:'Fraunces',serif;font-size:16.5px;font-weight:600;margin-bottom:15px;color:var(--forest);
+  display:flex;justify-content:space-between;align-items:center;
+}
+body.dark-mode .tasks-panel h2,body.dark-mode .events-panel h2,body.dark-mode .logs-panel h2{color:#dcead5}
+
+.task-cards{display:flex;flex-direction:column;gap:10px}
+.task-card{border-radius:var(--rad-s);padding:12px 15px;border-left-width:4px;border-left-style:solid}
+.task-card.reg{background:var(--y-bg);border:1.5px solid var(--y-br);border-left-width:4px}
+.task-card.reg-red{background:var(--r-bg);border:1.5px solid var(--r-br);border-left-width:4px}
+.task-card.reg-blue{background:var(--e-bg);border:1.5px solid var(--e-br);border-left-width:4px}
+.task-card.mil{background:var(--b-bg);border:1.5px solid var(--b-br);border-left-width:4px}
+.task-card.log{background:var(--sf2);border:1.5px solid var(--bd);border-left-width:4px;border-left-color:var(--brass)}
+.tc-header{display:flex;justify-content:space-between;align-items:flex-start;gap:8px;flex-wrap:wrap}
+.tc-mat{font-size:13px;font-weight:700}
+.task-card.reg .tc-mat{color:var(--y-tx)}
+.task-card.reg-red .tc-mat{color:var(--r-tx)}
+.task-card.reg-blue .tc-mat{color:var(--e-tx)}
+.task-card.mil .tc-mat{color:var(--b-tx)}
+.task-card.log .tc-mat{color:var(--forest)}
+body.dark-mode .task-card.log .tc-mat{color:#dcead5}
+.tc-day{font-size:10.5px;font-family:'JetBrains Mono',monospace;font-weight:600}
+.task-card.reg .tc-day{color:var(--y-tx)}
+.task-card.reg-red .tc-day{color:var(--r-tx)}
+.task-card.reg-blue .tc-day{color:var(--e-tx)}
+.task-card.mil .tc-day{color:var(--b-tx)}
+.task-card.log .tc-day{color:var(--tx2)}
+.tc-desc{font-size:12.5px;margin-top:6px;line-height:1.5}
+.task-card.reg .tc-desc{color:var(--y-tx)}
+.task-card.reg-red .tc-desc{color:var(--r-tx)}
+.task-card.reg-blue .tc-desc{color:var(--e-tx)}
+.task-card.mil .tc-desc{color:var(--b-tx)}
+.task-card.log .tc-desc{color:var(--tx2)}
+.tc-due{font-size:10.5px;margin-top:5px;font-weight:600}
+.task-card.reg .tc-due{color:var(--y-tx)}
+.task-card.reg-red .tc-due{color:var(--r-tx)}
+.task-card.reg-blue .tc-due{color:var(--e-tx)}
+.task-card.mil .tc-due{color:var(--b-tx)}
+.tc-instructor{font-size:11px;margin-top:4px;color:var(--b-tx);font-style:italic}
+
+.tc-actions{display:flex;gap:6px;margin-top:11px;border-top:1px solid rgba(0,0,0,.08);padding-top:11px}
+.btn-status{
+  flex:1;padding:6px;font-size:9.5px;font-weight:700;border-radius:5px;border:1.5px solid var(--bd);
+  background:var(--sf);color:var(--tx);cursor:pointer;transition:all .15s;text-transform:uppercase;letter-spacing:.3px;
+}
+.btn-status:hover{filter:brightness(.95)}
+.btn-status.active-delivered{background:var(--forest);color:#f2ead9;border-color:var(--forest-deep)}
+.btn-status.active-missing{background:#7c2418;color:#fff;border-color:#5c1a10}
+.btn-status.active-postponed{background:var(--brass-deep);color:#fff;border-color:#5f4620}
+
+/* Modo oscuro: tarjetas más grises/apagadas (no "neón") y botones con más contraste */
+body.dark-mode .task-card.reg{background:var(--sf2);border-color:var(--y-br)}
+body.dark-mode .task-card.reg-red{background:var(--sf2);border-color:var(--r-br)}
+body.dark-mode .task-card.reg-blue{background:var(--sf2);border-color:var(--e-br)}
+body.dark-mode .task-card.mil{background:var(--sf2);border-color:var(--b-br)}
+body.dark-mode .btn-status{background:var(--sf3);border-color:var(--tx3);color:var(--tx)}
+body.dark-mode .btn-status:hover{background:var(--bd);filter:none}
+
+.task-card.status-delivered{opacity:.55;filter:grayscale(.4)}
+.task-card.status-delivered .tc-desc{text-decoration:line-through}
+
+.no-tasks{text-align:center;padding:24px;font-size:13px;color:var(--tx3);font-style:italic}
+
+.add-event-btn{
+  padding:6px 14px;background:var(--forest);color:#f2ead9;border:1.5px solid var(--forest-deep);
+  border-radius:999px;font-size:11.5px;font-weight:600;cursor:pointer;
+}
+.add-event-btn:hover{filter:brightness(1.12)}
+.event-list{display:flex;flex-direction:column;gap:9px}
+.event-item{
+  padding:11px 13px;border:1.5px solid var(--bd);border-radius:var(--rad-s);border-left:4px solid var(--brass);
+  display:flex;justify-content:space-between;align-items:center;background:var(--sf2);
+}
+.event-info{flex:1}
+.event-name{font-weight:700;font-size:13.5px;color:var(--forest)}
+body.dark-mode .event-name{color:#dcead5}
+.event-details{font-size:11.5px;color:var(--tx2);margin-top:3px}
+.event-actions{display:flex;gap:6px}
+.btn-icon{border:1.5px solid var(--bd);background:var(--sf);border-radius:var(--rad-s);padding:5px 9px;cursor:pointer;font-size:13px;transition:background .12s}
+.btn-icon:hover{background:var(--sf3)}
+
+/* ---------- FILA DE TAREAS EXTRA (con plazo activo) ---------- */
+.extra-tasks-row .cell{cursor:default}
+.extra-tasks-row .cell:hover{filter:none;transform:none}
+.extra-badge{
+  display:block;padding:3px 7px;border-radius:5px;font-size:9.5px;font-weight:700;margin-bottom:4px;color:#2b2313;
+}
+.extra-badge.tarea{background:var(--y-br);color:#3a2900}
+.extra-badge.examen{background:var(--e-br);color:#fff}
+.extra-badge.reclamo{background:var(--r-br);color:#fff}
+
+/* ---------- MODALES ---------- */
+.overlay{display:none;position:fixed;inset:0;background:rgba(18,15,10,.5);z-index:300;align-items:center;justify-content:center;padding:16px;backdrop-filter:blur(2px)}
+.overlay.open{display:flex}
+.modal{
+  background:var(--sf);border-radius:var(--rad);border:1.5px solid var(--bd);padding:26px;width:100%;
+  max-width:400px;box-shadow:0 24px 60px -20px rgba(0,0,0,.4);animation:pop .16s ease;position:relative;overflow:hidden;
+}
+.modal::before{content:"";position:absolute;top:0;left:0;right:0;height:4px;background:linear-gradient(90deg,var(--forest),var(--brass))}
+@keyframes pop{from{transform:scale(.96);opacity:0}to{transform:scale(1);opacity:1}}
+.modal h3{font-family:'Fraunces',serif;font-size:18px;font-weight:600;color:var(--forest)}
+body.dark-mode .modal h3{color:#dcead5}
+.modal .msub{font-size:11px;color:var(--tx2);margin-top:3px;margin-bottom:17px;font-family:'JetBrains Mono',monospace}
+.modal label{font-size:12px;font-weight:600;letter-spacing:.3px;text-transform:uppercase;color:var(--tx2);display:block;margin-bottom:6px;margin-top:13px}
+.modal label:first-of-type{margin-top:0}
+.modal input[type=text],.modal textarea,.modal input[type=date],.modal input[type=time],.modal select{
+  width:100%;border:1.5px solid var(--bd);border-radius:var(--rad-s);padding:10px 12px;
+  font-size:15px;font-family:'Public Sans',sans-serif;color:var(--tx);background:var(--sf2);outline:none;transition:border-color .15s,box-shadow .15s;
+}
+.modal textarea{min-height:72px;resize:vertical}
+.modal input:focus,.modal textarea:focus,.modal select:focus{border-color:var(--forest);box-shadow:0 0 0 3px rgba(31,61,43,.12)}
+.modal-btns{display:flex;gap:8px;margin-top:19px;justify-content:flex-end;flex-wrap:wrap}
+.btn{
+  padding:9px 18px;border-radius:var(--rad-s);border:1.5px solid var(--bd);font-size:14px;font-weight:600;
+  font-family:'Public Sans',sans-serif;cursor:pointer;background:var(--sf);color:var(--tx);transition:background .12s,transform .08s;
+}
+.btn:hover{background:var(--sf2)}
+.btn:active{transform:translateY(1px)}
+.btn.primary{background:var(--forest);color:#f2ead9;border-color:var(--forest-deep)}
+.btn.primary:hover{filter:brightness(1.12)}
+.btn.primary-blue{background:var(--b-br);color:#eaf1f6;border-color:var(--b-tx)}
+.btn.primary-blue:hover{filter:brightness(1.12)}
+.btn.danger{color:#8b2418;border-color:#c98577;background:transparent}
+.btn.danger:hover{background:#fbe9e5}
+body.dark-mode .btn.danger:hover{background:#3d160f}
+.divider{height:1px;background:var(--bd);margin:15px 0}
+
+.plazo-choice{display:flex;gap:16px;margin:2px 0 10px}
+.plazo-choice label{display:flex;align-items:center;gap:6px;font-weight:500;text-transform:none;font-size:13px;color:var(--tx);margin:0;cursor:pointer}
+.plazo-choice input[type=radio]{width:auto}
+
+/* ---------- CALCULADOR DE NOTAS ---------- */
+.notas-simple-list{display:flex;flex-direction:column;gap:8px;margin-top:10px}
+.notas-simple-item{
+  display:flex;justify-content:space-between;align-items:center;gap:10px;
+  padding:11px 14px;border:1.5px solid var(--bd);border-radius:var(--rad-s);background:var(--sf2);
+}
+.notas-simple-mat{font-size:14px;font-weight:600;color:var(--tx);flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.notas-simple-val{font-size:15px;font-weight:700;color:var(--forest);font-family:'JetBrains Mono',monospace;flex-shrink:0}
+.notas-simple-val-warn{font-family:'Public Sans',sans-serif;font-size:12.5px;color:var(--r-tx);text-align:right;white-space:normal}
+body.dark-mode .notas-simple-val{color:#9fcf8f}
+body.dark-mode .notas-simple-val-warn{color:var(--r-tx)}
+#notas-resultado{max-height:360px;overflow-y:auto}
+
+/* ---------- TOASTS ---------- */
+#toast-container{position:fixed;bottom:20px;right:20px;z-index:1000;display:flex;flex-direction:column;gap:10px;max-width:320px}
+.toast{
+  background:var(--forest-deep);color:#f2ead9;padding:12px 18px;border-radius:var(--rad-s);font-size:13px;
+  box-shadow:0 10px 26px -10px rgba(0,0,0,.5);animation:slideIn .3s ease-out;display:flex;align-items:center;gap:10px;
+}
+@keyframes slideIn{from{transform:translateX(110%);opacity:0}to{transform:translateX(0);opacity:1}}
+.toast.update{border-left:4px solid var(--g-br)}
+.toast.postpone{border-left:4px solid var(--y-br)}
+.toast.task{border-left:4px solid var(--b-br)}
+.toast.reclamo{border-left:4px solid var(--r-br)}
+.toast.examen{border-left:4px solid var(--e-br)}
+.toast.error{border-left:4px solid #c9584a}
+
+.status-dot{width:8px;height:8px;border-radius:50%;background:#999;display:inline-block;cursor:help}
+.status-dot.online{background:#5f8a4f;box-shadow:0 0 6px #5f8a4f}
+.status-dot.offline{background:#a2493a;box-shadow:0 0 6px #a2493a}
+.status-dot.connecting{background:var(--brass);box-shadow:0 0 6px var(--brass);animation:pulse-dot 1s ease-in-out infinite}
+@keyframes pulse-dot{0%,100%{opacity:1}50%{opacity:.3}}
+
+.hidden{display:none!important}
+
+@media (prefers-reduced-motion:reduce){
+  *{animation-duration:.001ms!important;transition-duration:.001ms!important}
+}
+
+/* foco visible por teclado */
+a:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible,.cell:focus-visible{
+  outline:2.5px solid var(--brass);outline-offset:2px;
+}
+
+@media (max-width:640px){
+  header h1{font-size:21px}
+  .modal{padding:20px}
+}
+</style>
+</head>
+<body>
+<div class="page" id="main-page">
+
+<div id="auth-container" class="auth-container">
+  <div class="auth-card" id="login-card">
+    <h2>Iniciar Sesión</h2>
+    <div class="form-group">
+      <label>Usuario</label>
+      <input type="text" id="login-username" placeholder="Ingresa tu usuario">
+    </div>
+    <div class="form-group">
+      <label>Contraseña</label>
+      <input type="password" id="login-password" placeholder="Ingresa tu contraseña">
+    </div>
+    <button class="btn-primary" onclick="handleLogin()">Ingresar</button>
+    <div class="toggle-auth" onclick="showRegister()">Crear cuenta</div>
+  </div>
+
+  <div class="auth-card hidden" id="register-card">
+    <h2>Crear Cuenta</h2>
+    <div class="form-group">
+      <label>Usuario</label>
+      <input type="text" id="register-username" placeholder="Elige un usuario">
+    </div>
+    <div class="form-group">
+      <label>Contraseña</label>
+      <input type="password" id="register-password" placeholder="Elige una contraseña">
+    </div>
+    <div class="form-group">
+      <label>Grado</label>
+      <select id="register-grade">
+        <option value="6">6°</option>
+        <option value="7">7°</option>
+        <option value="8">8°</option>
+        <option value="9">9°</option>
+        <option value="10">10°</option>
+        <option value="11">11°</option>
+      </select>
+    </div>
+    <button class="btn-primary" onclick="handleRegister()">Crear Cuenta</button>
+    <div class="toggle-auth" onclick="showLogin()">Ya tengo cuenta</div>
+  </div>
+</div>
+
+<div id="app-container" class="hidden">
+<header>
+  <div class="header-left">
+    <label class="switch">
+      <input type="checkbox" id="dark-mode-toggle" onchange="toggleDarkMode()">
+      <span class="slider"></span>
+    </label>
+    <span class="dark-mode-label">Modo Oscuro</span>
+  </div>
+  <h1>Horario <span id="current-grade-label">11°</span> <span id="connection-status" class="status-dot" title="Desconectado"></span></h1>
+  <div class="header-buttons">
+    <button id="notif-toggle" title="Recibir notificaciones de tareas y clases">🔕 Activar notificaciones</button>
+    <button id="calc-notas-btn" onclick="openNotasModal()" title="Consultar tus notas de Q10 (P1+P2+P3 de todas las materias)">🧮 Calculador de Notas</button>
+    <button id="logout-btn" onclick="handleLogout()">🚪 Cerrar Sesión</button>
+    <button id="accesoq10"><a href ="https://site6.q10.com/login?ReturnUrl=%2F&aplentId=6b624247-5ec3-4fed-968f-86645e0afb0c" target="_blank">Acceso a Q10</a></button>
+  </div>
+</header>
+
+<div class="grade-selector" id="grade-selector"></div>
+
+<div class="week-bar">
+  <button class="week-btn" id="prev-week">&#8592;</button>
+  <div class="week-info">
+    <div class="week-num" id="week-num"></div>
+    <div class="week-dates" id="week-dates"></div>
+  </div>
+  <button class="week-btn" id="next-week">&#8594;</button>
+</div>
+
+<div class="legend">
+  <div class="legend-item"><div class="legend-dot" style="background:var(--g-bg);border-color:var(--g-br)"></div>Sin tarea</div>
+  <div class="legend-item"><div class="legend-dot" style="background:var(--y-bg);border-color:var(--y-br)"></div>Tarea</div>
+  <div class="legend-item"><div class="legend-dot" style="background:var(--r-bg);border-color:var(--r-br)"></div>Reclamo</div>
+  <div class="legend-item"><div class="legend-dot" style="background:var(--e-bg);border-color:var(--e-br)"></div>Examen</div>
+  <div class="legend-item"><div class="legend-dot" style="background:var(--b-bg);border-color:var(--b-br)"></div>Fase Militar</div>
+</div>
+
+<div class="table-wrap">
+  <table>
+    <thead>
+      <tr id="thead-row">
+        <th>Hora</th>
+        <th>Lunes</th>
+        <th>Martes</th>
+        <th>Miércoles</th>
+        <th>Jueves</th>
+        <th class="fri-head">Viernes</th>
+      </tr>
+    </thead>
+    <tbody id="tbody"></tbody>
+  </table>
+</div>
+
+<div class="events-panel hidden" id="events-panel">
+  <h2>🎪 Eventos Especiales <button class="add-event-btn" onclick="openEventModal()">+ Agregar Evento</button></h2>
+  <div id="events-list" class="event-list"></div>
+</div>
+
+<div class="logs-panel hidden" id="logs-panel">
+  <h2>🗂️ Registro de Cambios (Admin) <button class="add-event-btn" onclick="loadAuditLogs()">↻ Actualizar</button></h2>
+  <div id="logs-list"></div>
+</div>
+
+<div class="tasks-panel">
+  <h2>📌 Tareas — <span id="tasks-week-label"></span></h2>
+  <div id="tasks-list"></div>
+</div>
+</div>
+</div>
+
+<div class="overlay" id="overlay-reg">
+  <div class="modal">
+    <h3 id="rm-mat"></h3>
+    <div class="msub" id="rm-sub"></div>
+    <div id="reg-flow-type">
+      <label>¿Qué vas a hacer?</label>
+      <div style="display:flex;gap:8px;margin-bottom:12px;">
+        <button class="btn" style="flex:1;border-color:var(--y-br);color:var(--y-tx)" onclick="setRegType('tarea')">Tarea</button>
+        <button class="btn" style="flex:1;border-color:var(--r-br);color:var(--r-tx)" onclick="setRegType('reclamo')">Reclamo</button>
+        <button class="btn" style="flex:1;border-color:var(--e-br);color:var(--e-tx)" onclick="setRegType('examen')">Examen</button>
+      </div>
+      <button class="btn" style="width:100%" onclick="showRegDetails()">Solo ver/editar notas</button>
+    </div>
+    <div id="reg-details" style="display:none">
+      <div id="reg-type-badge" style="display:inline-block;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:600;margin-bottom:10px;text-transform:uppercase"></div>
+      <label id="label-desc">Descripción</label>
+      <textarea id="rm-task" placeholder="Escribe aquí los detalles..."></textarea>
+      <label>¿Tiene plazo?</label>
+      <div class="plazo-choice">
+        <label><input type="radio" name="rm-has-due" id="rm-has-due-si"> Sí</label>
+        <label><input type="radio" name="rm-has-due" id="rm-has-due-no"> No</label>
+      </div>
+      <div id="rm-due-wrap">
+        <label>Plazo (fecha límite)</label>
+        <input type="date" id="rm-due">
+      </div>
+      <div class="divider"></div>
+      <label>Notas generales (no cambian el color)</label>
+      <textarea id="rm-notes" placeholder="Notas, recordatorios, etc..."></textarea>
+      <div class="modal-btns">
+        <button class="btn danger" id="rm-clear">Borrar todo</button>
+        <button class="btn" id="rm-cancel">Cancelar</button>
+        <button class="btn primary" id="rm-save">Guardar</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="overlay" id="overlay-postpone">
+  <div class="modal">
+    <h3>Aplazar Tarea</h3>
+    <div class="msub">Selecciona la nueva fecha y hora</div>
+    <label>Nueva fecha</label>
+    <input type="date" id="postpone-due">
+    <label>Bloque horario</label>
+    <select id="postpone-time" class="btn" style="width:100%; text-align:left; padding:10px 12px; background:var(--sf2)"></select>
+    <div class="modal-btns">
+      <button class="btn" id="postpone-cancel">Cancelar</button>
+      <button class="btn primary" id="postpone-save" style="background:var(--y-bg); border-color:var(--y-br); color:var(--y-tx)">Confirmar Aplazamiento</button>
+    </div>
+  </div>
+</div>
+
+<div class="overlay" id="overlay-mil">
+  <div class="modal">
+    <h3 style="color:var(--b-tx)">Fase Militar</h3>
+    <div class="msub" id="mm-sub"></div>
+    <label>Primero con que toca</label>
+    <input type="text" id="mm-instructor" placeholder="Ortiz - Rojas - Mena">
+    <div class="divider"></div>
+    <label>Tarea</label>
+    <textarea id="mm-task" placeholder=""></textarea>
+    <label>¿Tiene plazo?</label>
+    <div class="plazo-choice">
+      <label><input type="radio" name="mm-has-due" id="mm-has-due-si"> Sí</label>
+      <label><input type="radio" name="mm-has-due" id="mm-has-due-no"> No</label>
+    </div>
+    <div id="mm-due-wrap">
+      <label>Plazo (fecha límite)</label>
+      <input type="date" id="mm-due">
+    </div>
+    <div class="modal-btns">
+      <button class="btn danger" id="mm-clear">Borrar todo</button>
+      <button class="btn" id="mm-cancel">Cancelar</button>
+      <button class="btn primary-blue" id="mm-save">Guardar</button>
+    </div>
+  </div>
+</div>
+
+<div class="overlay" id="overlay-event">
+  <div class="modal">
+    <h3>Evento Especial</h3>
+    <div class="msub">Agregar actividad extracurricular</div>
+    <label>Nombre del evento</label>
+    <input type="text" id="event-name" placeholder="Ej: Día del deporte">
+    <label>Descripción</label>
+    <textarea id="event-desc" placeholder="Detalles del evento..."></textarea>
+    <label>Fecha</label>
+    <input type="date" id="event-date">
+    <div style="display:flex;gap:10px">
+      <div style="flex:1">
+        <label>Hora de inicio</label>
+        <input type="time" id="event-start-time">
+      </div>
+      <div style="flex:1">
+        <label>Hora de fin</label>
+        <input type="time" id="event-end-time">
+      </div>
+    </div>
+    <label>Grados afectados</label>
+    <select id="event-grades">
+      <option value="all">Todos los grados</option>
+      <option value="6">6°</option>
+      <option value="7">7°</option>
+      <option value="8">8°</option>
+      <option value="9">9°</option>
+      <option value="10">10°</option>
+      <option value="11">11°</option>
+    </select>
+    <div class="modal-btns">
+      <button class="btn danger" id="event-clear" style="display:none">Eliminar</button>
+      <button class="btn" id="event-cancel">Cancelar</button>
+      <button class="btn primary" id="event-save">Guardar</button>
+    </div>
+  </div>
+</div>
+
+<div class="overlay" id="overlay-notas">
+  <div class="modal" style="max-width:540px">
+    <h3>🧮 Calculador de Notas</h3>
+    <div class="msub">Resultado = 14 - (Periodo 1 + Periodo 2 + Periodo 3), para todas tus materias</div>
+    <label>Usuario</label>
+    <input type="text" id="notas-usuario" placeholder="Tu usuario de Q10" autocomplete="off">
+    <label>Contraseña</label>
+    <input type="password" id="notas-contrasena" placeholder="Tu contraseña de Q10" autocomplete="off">
+    <div class="modal-btns">
+      <button class="btn" id="notas-cancel">Cerrar</button>
+      <button class="btn primary" id="notas-consultar">Consultar</button>
+    </div>
+    <div id="notas-mensaje"></div>
+    <div id="notas-resultado"></div>
+  </div>
+</div>
+
+<div id="toast-container"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+const SUPABASE_URL = 'https://kibomtadrvantlzjjyvc.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_lzuN3b6Q7POh5vC4EQ1IxQ_Xs26vbri';
+const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+let currentUser = null;
+let _currentGrade = '11';
+let currentWeek = 1;
+let allData = {};
+let allEvents = [];
+
+// Getter y setter para currentGrade para controlar acceso
+Object.defineProperty(window, 'currentGrade', {
+  get: function() {
+    return _currentGrade;
+  },
+  set: function(value) {
+    // Solo permitir cambiar el grado si es admin
+    if (currentUser && currentUser.isAdmin) {
+      _currentGrade = value;
+    } else if (currentUser) {
+      // Si no es admin, mantener el grado del usuario
+      _currentGrade = currentUser.grade;
+    } else {
+      _currentGrade = value;
+    }
+  }
+});
+
+const colombianHolidays = new Set([
+  '2025-01-01', '2025-01-06', '2025-03-24', '2025-04-17', '2025-04-18',
+  '2025-05-01', '2025-06-02', '2025-06-23', '2025-06-30', '2025-07-20',
+  '2025-08-07', '2025-10-13', '2025-11-03', '2025-11-17', '2025-12-08',
+  '2025-12-25', '2026-01-01', '2026-01-06', '2026-04-06', '2026-04-10',
+  '2026-05-01', '2026-06-01', '2026-06-22', '2026-06-29', '2026-07-20',
+  '2026-08-07', '2026-10-12', '2026-11-02', '2026-11-16', '2026-12-08',
+  '2026-12-25'
+]);
+
+const GRADE_SCHEDULES = {
+  '6': {
+    '0-0':'Matemáticas', '0-1':'Lenguaje', '0-2':'Ciencias Naturales', '0-3':'Sociales',
+    '1-0':'Inglés', '1-1':'Matemáticas', '1-2':'Lenguaje', '1-3':'Educación Física',
+    '2-0':'Ciencias Naturales', '2-1':'Sociales', '2-2':'Inglés', '2-3':'Artística',
+    '3-0':'Matemáticas', '3-1':'Lenguaje', '3-2':'Ciencias Naturales', '3-3':'Tecnología',
+    '4-0':'Sociales', '4-1':'Inglés', '4-2':'Matemáticas', '4-3':'Lenguaje',
+    '5-0':'Ciencias Naturales', '5-1':'Sociales', '5-2':'Inglés', '5-3':'Educación Física',
+    '6-0':'Artística', '6-1':'Tecnología', '6-2':'Matemáticas', '6-3':'Lenguaje',
+    '7-0':'Ciencias Naturales', '7-1':'Sociales', '7-2':'Inglés', '7-3':'Ética'
+  },
+  '7': {
+    '0-0':'Matemáticas', '0-1':'Lenguaje', '0-2':'Ciencias Naturales', '0-3':'Sociales',
+    '1-0':'Inglés', '1-1':'Matemáticas', '1-2':'Lenguaje', '1-3':'Educación Física',
+    '2-0':'Ciencias Naturales', '2-1':'Sociales', '2-2':'Inglés', '2-3':'Artística',
+    '3-0':'Matemáticas', '3-1':'Lenguaje', '3-2':'Ciencias Naturales', '3-3':'Tecnología',
+    '4-0':'Sociales', '4-1':'Inglés', '4-2':'Matemáticas', '4-3':'Lenguaje',
+    '5-0':'Ciencias Naturales', '5-1':'Sociales', '5-2':'Inglés', '5-3':'Educación Física',
+    '6-0':'Artística', '6-1':'Tecnología', '6-2':'Matemáticas', '6-3':'Lenguaje',
+    '7-0':'Ciencias Naturales', '7-1':'Sociales', '7-2':'Inglés', '7-3':'Ética'
+  },
+  '8': {
+    '0-0':'Matemáticas', '0-1':'Lenguaje', '0-2':'Ciencias Naturales', '0-3':'Sociales',
+    '1-0':'Inglés', '1-1':'Matemáticas', '1-2':'Lenguaje', '1-3':'Educación Física',
+    '2-0':'Ciencias Naturales', '2-1':'Sociales', '2-2':'Inglés', '2-3':'Artística',
+    '3-0':'Matemáticas', '3-1':'Lenguaje', '3-2':'Ciencias Naturales', '3-3':'Tecnología',
+    '4-0':'Sociales', '4-1':'Inglés', '4-2':'Matemáticas', '4-3':'Lenguaje',
+    '5-0':'Ciencias Naturales', '5-1':'Sociales', '5-2':'Inglés', '5-3':'Educación Física',
+    '6-0':'Artística', '6-1':'Tecnología', '6-2':'Matemáticas', '6-3':'Lenguaje',
+    '7-0':'Ciencias Naturales', '7-1':'Sociales', '7-2':'Inglés', '7-3':'Ética'
+  },
+  '9': {
+    '0-0':'Matemáticas', '0-1':'Lenguaje', '0-2':'Ciencias Naturales', '0-3':'Sociales',
+    '1-0':'Inglés', '1-1':'Matemáticas', '1-2':'Lenguaje', '1-3':'Educación Física',
+    '2-0':'Ciencias Naturales', '2-1':'Sociales', '2-2':'Inglés', '2-3':'Artística',
+    '3-0':'Matemáticas', '3-1':'Lenguaje', '3-2':'Ciencias Naturales', '3-3':'Tecnología',
+    '4-0':'Sociales', '4-1':'Inglés', '4-2':'Matemáticas', '4-3':'Lenguaje',
+    '5-0':'Ciencias Naturales', '5-1':'Sociales', '5-2':'Inglés', '5-3':'Educación Física',
+    '6-0':'Artística', '6-1':'Tecnología', '6-2':'Matemáticas', '6-3':'Lenguaje',
+    '7-0':'Ciencias Naturales', '7-1':'Sociales', '7-2':'Inglés', '7-3':'Filosofía'
+  },
+  '10': {
+    '0-0':'Matemáticas', '0-1':'Lenguaje', '0-2':'Ciencias Naturales', '0-3':'Sociales',
+    '1-0':'Inglés', '1-1':'Matemáticas', '1-2':'Lenguaje', '1-3':'Educación Física',
+    '2-0':'Ciencias Naturales', '2-1':'Sociales', '2-2':'Inglés', '2-3':'Artística',
+    '3-0':'Matemáticas', '3-1':'Lenguaje', '3-2':'Ciencias Naturales', '3-3':'Tecnología',
+    '4-0':'Sociales', '4-1':'Inglés', '4-2':'Matemáticas', '4-3':'Lenguaje',
+    '5-0':'Ciencias Naturales', '5-1':'Sociales', '5-2':'Inglés', '5-3':'Educación Física',
+    '6-0':'Artística', '6-1':'Tecnología', '6-2':'Matemáticas', '6-3':'Lenguaje',
+    '7-0':'Ciencias Naturales', '7-1':'Sociales', '7-2':'Inglés', '7-3':'Filosofía'
+  },
+  '11': {
+    '0-0':'Informática', '0-1':'Matemáticas', '0-2':'Física', '0-3':'Filosofía',
+    '1-0':'Robótica', '1-1':'Lenguaje', '1-2':'Lenguaje', '1-3':'Lenguaje',
+    '2-0':'Inglés', '2-1':'Física', '2-2':'Geometría', '2-3':'Inglés',
+    '3-0':'Política', '3-1':'Ética', '3-2':'Inglés', '3-3':'Lenguaje',
+    '4-0':'Matemáticas', '4-1':'Ciencias', '4-2':'Física', '4-3':'Artística',
+    '5-0':'Inglés', '5-1':'Inglés', '5-2':'Sociales', '5-3':'Matemáticas',
+    '6-0':'Química', '6-1':'Química', '6-2':'Filosofía', '6-3':'Estadística',
+    '7-0':'Educación Física', '7-1':'Economía', '7-2':'Química', '7-3':'Religión'
+  }
+};
+
+const DAYS = ['Lunes','Martes','Miércoles','Jueves','Viernes'];
+const BLOCKS = [
+  {time:'7:00\n7:50', type:'class', idx:0},
+  {time:'7:50\n8:40', type:'class', idx:1},
+  {time:'8:40\n9:30', type:'class', idx:2},
+  {type:'break', label:'D E S C A N S O  —  9:30 a 9:50'},
+  {time:'9:50\n10:40', type:'class', idx:3},
+  {time:'10:40\n11:30', type:'class', idx:4},
+  {time:'11:30\n12:20', type:'class', idx:5},
+  {type:'break', label:'D E S C A N S O  —  12:20 a 12:50'},
+  {time:'12:50\n1:40', type:'class', idx:6},
+  {time:'1:40\n2:30', type:'class', idx:7},
+  {type:'gap'},
+  {time:'2:30\n4:00', type:'militar'}
+];
+
+function isNetworkError(err) {
+  return err instanceof TypeError || (err && /failed to fetch/i.test(err.message || ''));
+}
+
+async function withRetry(taskFn, { retries = 2, delayMs = 900 } = {}) {
+  let lastErr = null;
+  for (let attempt = 0; attempt <= retries; attempt++) {
+    try {
+      const result = await taskFn();
+      if (result && result.error) {
+        if (isNetworkError(result.error) && attempt < retries) {
+          await new Promise(r => setTimeout(r, delayMs * (attempt + 1)));
+          continue;
+        }
+        return result;
+      }
+      return result;
+    } catch (err) {
+      lastErr = err;
+      if (isNetworkError(err) && attempt < retries) {
+        await new Promise(r => setTimeout(r, delayMs * (attempt + 1)));
+        continue;
+      }
+      return { data: null, error: err };
+    }
+  }
+  return { data: null, error: lastErr };
+}
+
+function friendlyErrorMessage(error, action) {
+  if (!error) return null;
+  if (isNetworkError(error)) return `No se pudo ${action}: sin conexión con el servidor.`;
+  return `Error al ${action}: ${error.message || error}`;
+}
+
+function setConnectionStatus(state) {
+  const statusDot = document.getElementById('connection-status');
+  if (!statusDot) return;
+  statusDot.classList.remove('online', 'offline', 'connecting');
+  if (state === 'online') statusDot.classList.add('online'), statusDot.title = 'Conectado';
+  else if (state === 'connecting') statusDot.classList.add('connecting'), statusDot.title = 'Conectando…';
+  else statusDot.classList.add('offline'), statusDot.title = 'Sin conexión con el servidor';
+}
+
+function showToast(msg, type = 'update') {
+  const container = document.getElementById('toast-container');
+  const t = document.createElement('div');
+  t.className = `toast ${type}`;
+  t.textContent = msg;
+  container.appendChild(t);
+  setTimeout(() => t.remove(), type === 'error' ? 6000 : 4000);
+}
+
+async function initAuth() {
+  // El inicio de sesion SIEMPRE se valida contra Supabase, nunca solo
+  // contra localStorage. Aqui solo guardamos usuario/contraseña de este
+  // dispositivo para no pedirlos cada vez, pero antes de mostrar la app
+  // se vuelven a verificar con la funcion login_user() en Supabase; si
+  // la cuenta ya no existe o la contraseña cambio, se pide login de nuevo.
+  const savedCreds = localStorage.getItem('horarioCreds');
+
+  if (savedCreds) {
+    let parsed = null;
+    try { parsed = JSON.parse(savedCreds); } catch (e) { parsed = null; }
+
+    if (parsed && parsed.username && parsed.password) {
+      setConnectionStatus('connecting');
+      const { data, error } = await withRetry(() => supabaseClient.rpc('login_user', {
+        p_username: parsed.username,
+        p_password: parsed.password
+      }));
+
+      if (!error && data && data.ok) {
+        currentUser = { username: data.username, grade: data.grade, isAdmin: data.is_admin };
+        _currentGrade = currentUser.grade === 'all' ? '11' : currentUser.grade;
+        showApp();
+        return;
+      }
+
+      // Credenciales invalidas (cuenta borrada / contraseña cambiada) o
+      // no se pudo confirmar con Supabase: se limpia y se pide login.
+      localStorage.removeItem('horarioCreds');
+      if (error && isNetworkError(error)) {
+        showToast('No se pudo verificar la sesion (sin conexion). Inicia sesion de nuevo.', 'error');
+      }
+    } else {
+      localStorage.removeItem('horarioCreds');
+    }
+  }
+
+  showAuth();
+}
+
+function showAuth() {
+  document.getElementById('auth-container').classList.remove('hidden');
+  document.getElementById('app-container').classList.add('hidden');
+}
+
+function showLogin() {
+  document.getElementById('login-card').classList.remove('hidden');
+  document.getElementById('register-card').classList.add('hidden');
+}
+
+function showRegister() {
+  document.getElementById('register-card').classList.remove('hidden');
+  document.getElementById('login-card').classList.add('hidden');
+}
+
+async function handleRegister() {
+  const username = document.getElementById('register-username').value.trim();
+  const password = document.getElementById('register-password').value.trim();
+  const grade = document.getElementById('register-grade').value;
+  if (!username || !password) { showToast('Completa todos los campos', 'error'); return; }
+
+  const btn = document.querySelector('#register-card .btn-primary');
+  if (btn) btn.disabled = true;
+  try {
+    const { data, error } = await supabaseClient.rpc('register_user', {
+      p_username: username,
+      p_password: password,
+      p_grade: grade
+    });
+    if (error) { showToast('No se pudo crear la cuenta (error de conexion)', 'error'); return; }
+    if (!data || !data.ok) { showToast(data?.error || 'No se pudo crear la cuenta', 'error'); return; }
+
+    showToast('Cuenta creada exitosamente! Ya puedes iniciar sesion desde cualquier dispositivo.');
+    showLogin();
+    document.getElementById('register-username').value = '';
+    document.getElementById('register-password').value = '';
+  } finally {
+    if (btn) btn.disabled = false;
+  }
+}
+
+async function handleLogin() {
+  const username = document.getElementById('login-username').value.trim();
+  const password = document.getElementById('login-password').value.trim();
+  if (!username || !password) { showToast('Completa todos los campos', 'error'); return; }
+
+  const btn = document.querySelector('#login-card .btn-primary');
+  if (btn) btn.disabled = true;
+  try {
+    const { data, error } = await supabaseClient.rpc('login_user', {
+      p_username: username,
+      p_password: password
+    });
+    if (error) { showToast('No se pudo iniciar sesion (error de conexion)', 'error'); return; }
+    if (!data || !data.ok) { showToast(data?.error || 'Usuario o contraseña incorrectos', 'error'); return; }
+
+    currentUser = { username: data.username, grade: data.grade, isAdmin: data.is_admin };
+    // Solo se guarda usuario/contraseña para volver a validar con Supabase
+    // en la proxima visita (ver initAuth). Los datos de la cuenta (grado,
+    // si es admin, etc.) NUNCA se leen de localStorage, siempre de Supabase.
+    localStorage.setItem('horarioCreds', JSON.stringify({ username, password }));
+    _currentGrade = data.grade === 'all' ? '11' : data.grade;
+    showApp();
+  } finally {
+    if (btn) btn.disabled = false;
+  }
+}
+
+function handleLogout() {
+  currentUser = null;
+  localStorage.removeItem('horarioCreds');
+  showAuth();
+}
+
+function showApp() {
+  document.getElementById('auth-container').classList.add('hidden');
+  document.getElementById('app-container').classList.remove('hidden');
+  initGradeSelector();
+  currentWeek = getWeekFromDate(new Date());
+  const isDark = localStorage.getItem('darkMode') === 'true';
+  if (isDark) {
+    document.body.classList.add('dark-mode');
+    document.getElementById('dark-mode-toggle').checked = true;
+  }
+  initRealtime();
+  buildTable();
+}
+
+function toggleDarkMode() {
+  const isDark = document.getElementById('dark-mode-toggle').checked;
+  if (isDark) {
+    document.body.classList.add('dark-mode');
+  } else {
+    document.body.classList.remove('dark-mode');
+  }
+  localStorage.setItem('darkMode', isDark);
+}
+
+function initGradeSelector() {
+  const container = document.getElementById('grade-selector');
+  container.innerHTML = '';
+  
+  // Si es admin, mostrar todos los grados
+  if (currentUser.isAdmin) {
+    ['6','7','8','9','10','11'].forEach(grade => {
+      const btn = document.createElement('button');
+      btn.className = 'grade-btn' + (currentGrade === grade ? ' active' : '');
+      btn.textContent = `${grade}°`;
+      btn.onclick = () => {
+        currentGrade = grade;
+        document.getElementById('current-grade-label').textContent = `${grade}°`;
+        document.querySelectorAll('.grade-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        buildTable();
+      };
+      container.appendChild(btn);
+    });
+  } else {
+    // Si no es admin, solo mostrar su grado (no editable)
+    const gradeDisplay = document.createElement('div');
+    gradeDisplay.className = 'grade-btn active';
+    gradeDisplay.textContent = `${currentUser.grade}°`;
+    gradeDisplay.style.cursor = 'default';
+    gradeDisplay.style.opacity = '0.9';
+    container.appendChild(gradeDisplay);
+  }
+  
+  document.getElementById('current-grade-label').textContent = `${currentGrade}°`;
+  if (currentUser.isAdmin) {
+    document.getElementById('events-panel').classList.remove('hidden');
+    document.getElementById('logs-panel').classList.remove('hidden');
+    loadAuditLogs();
+  }
+}
+
+const ANCHOR_WEEK = 21;
+const ANCHOR_MON = new Date(2026, 6, 6);
+
+function getWeekFromDate(date) {
+  const d = new Date(date);
+  d.setHours(12,0,0,0);
+  const diff = d - ANCHOR_MON;
+  const weeks = Math.floor(diff / (7 * 24 * 60 * 60 * 1000));
+  return Math.max(1, ANCHOR_WEEK + weeks);
+}
+
+function getMonday(week) {
+  const d = new Date(ANCHOR_MON);
+  d.setDate(d.getDate() + (week - ANCHOR_WEEK) * 7);
+  return d;
+}
+
+function getWeekDates(week) {
+  const mon = getMonday(week);
+  const fri = new Date(mon); fri.setDate(mon.getDate()+4);
+  const fmt = d => d.toLocaleDateString('es-CO',{day:'numeric',month:'short'});
+  return `${fmt(mon)} – ${fmt(fri)} de ${mon.getFullYear()}`;
+}
+
+function getDayDate(week, col) {
+  const mon = getMonday(week);
+  const d = new Date(mon); d.setDate(mon.getDate()+col);
+  return d.toISOString().split('T')[0];
+}
+
+function isHoliday(week, col) {
+  return colombianHolidays.has(getDayDate(week, col));
+}
+
+function weekData() {
+  const key = `${currentGrade}-${currentWeek}`;
+  if (!allData[key]) allData[key] = {};
+  return allData[key];
+}
+
+function getUserKey() {
+  return currentUser ? currentUser.username : 'anonymous';
+}
+
+function cellLabel(cellKey, grade) {
+  if (!cellKey) return '—';
+  if (cellKey.startsWith('mil-')) {
+    const col = parseInt(cellKey.split('-')[1], 10);
+    return `Fase Militar (${DAYS[col] || '?'})`;
+  }
+  const [blockIdx, col] = cellKey.split('-');
+  const mats = GRADE_SCHEDULES[grade] || GRADE_SCHEDULES['11'];
+  const subject = mats[cellKey] || 'Materia';
+  const day = DAYS[parseInt(col, 10)] || '?';
+  return `${subject} (${day})`;
+}
+
+function isExpired(due) {
+  if (!due) return false;
+  return new Date(due+'T23:59:59') < new Date();
+}
+
+function getCurrentMats() {
+  return GRADE_SCHEDULES[currentGrade] || GRADE_SCHEDULES['11'];
+}
+
+function loadEvents() {
+  const saved = localStorage.getItem('horarioEvents');
+  allEvents = saved ? JSON.parse(saved) : [];
+  buildEventsList();
+}
+
+function saveEvents() {
+  localStorage.setItem('horarioEvents', JSON.stringify(allEvents));
+}
+
+function buildEventsList() {
+  const container = document.getElementById('events-list');
+  if (!allEvents.length) {
+    container.innerHTML = '<div class="no-tasks">No hay eventos especiales</div>';
+    return;
+  }
+  container.innerHTML = allEvents.map((event, idx) => {
+    let timeStr = '';
+    if (event.startTime) {
+      timeStr = event.endTime ? `${event.startTime} - ${event.endTime}` : event.startTime;
+    }
+    return `
+    <div class="event-item">
+      <div class="event-info">
+        <div class="event-name">${event.name}</div>
+        <div class="event-details">
+          Fecha: ${new Date(event.date).toLocaleDateString('es-CO')}${timeStr ? ' | Hora: ' + timeStr : ''} | Grados: ${event.grades === 'all' ? 'Todos' : event.grades + '°'}
+        </div>
+        <div class="event-details">${event.desc}</div>
+      </div>
+      <div class="event-actions">
+        <button class="btn-icon" onclick="openEventModal(${idx})">✏️</button>
+        <button class="btn-icon" onclick="deleteEvent(${idx})">🗑️</button>
+      </div>
+    </div>
+  `}).join('');
+}
+
+function getEventsForDate(dateStr) {
+  return allEvents.filter(e => {
+    if (e.date !== dateStr) return false;
+    if (e.grades === 'all') return true;
+    return e.grades === currentGrade;
+  });
+}
+
+let currentEventIdx = null;
+function openEventModal(idx = null) {
+  currentEventIdx = idx;
+  const event = idx !== null ? allEvents[idx] : null;
+  document.getElementById('event-name').value = event ? event.name : '';
+  document.getElementById('event-desc').value = event ? event.desc : '';
+  document.getElementById('event-date').value = event ? event.date : '';
+  document.getElementById('event-start-time').value = event ? (event.startTime || '') : '';
+  document.getElementById('event-end-time').value = event ? (event.endTime || '') : '';
+  document.getElementById('event-grades').value = event ? event.grades : 'all';
+  document.getElementById('event-clear').style.display = idx !== null ? 'block' : 'none';
+  document.getElementById('overlay-event').classList.add('open');
+}
+
+document.getElementById('event-cancel').onclick = () => document.getElementById('overlay-event').classList.remove('open');
+document.getElementById('overlay-event').onclick = (e) => {
+  if (e.target === document.getElementById('overlay-event')) document.getElementById('overlay-event').classList.remove('open');
+};
+
+document.getElementById('event-save').onclick = () => {
+  const name = document.getElementById('event-name').value.trim();
+  const desc = document.getElementById('event-desc').value.trim();
+  const date = document.getElementById('event-date').value;
+  const startTime = document.getElementById('event-start-time').value;
+  const endTime = document.getElementById('event-end-time').value;
+  const grades = document.getElementById('event-grades').value;
+  if (!name || !date) { showToast('Nombre y fecha son obligatorios', 'error'); return; }
+  const event = { name, desc, date, startTime, endTime, grades };
+  if (currentEventIdx !== null) allEvents[currentEventIdx] = event;
+  else allEvents.push(event);
+  saveEvents();
+  document.getElementById('overlay-event').classList.remove('open');
+  buildEventsList();
+  buildTable();
+  showToast('Evento guardado exitosamente!');
+};
+
+document.getElementById('event-clear').onclick = () => {
+  if (currentEventIdx !== null) { deleteEvent(currentEventIdx); document.getElementById('overlay-event').classList.remove('open'); }
+};
+
+function deleteEvent(idx) {
+  allEvents.splice(idx,1); saveEvents(); buildEventsList(); buildTable(); showToast('Evento eliminado');
+}
+
+function computeExtraTasksByColumn() {
+  const byCol = [[], [], [], [], []];
+  const mats = getCurrentMats();
+  Object.keys(allData).forEach(gwKey => {
+    const sep = gwKey.lastIndexOf('-');
+    const grade = gwKey.slice(0, sep);
+    const week = parseInt(gwKey.slice(sep + 1));
+    if (grade !== currentGrade || isNaN(week)) return;
+    const wd = allData[gwKey];
+    Object.keys(wd).forEach(cellKey => {
+      const entry = wd[cellKey];
+      if (!entry || !entry.task || !entry.task.trim() || !entry.due) return;
+      const isMil = cellKey.startsWith('mil-');
+      const parts = cellKey.split('-');
+      const originCol = parseInt(parts[1]);
+      if (isNaN(originCol) || originCol < 0 || originCol > 4) return;
+      const originDate = getDayDate(week, originCol);
+      if (entry.due < originDate) return; // plazo ya vencido antes de asignarse
+      for (let col = 0; col < 5; col++) {
+        const dateStr = getDayDate(currentWeek, col);
+        if (dateStr === originDate) continue; // ya se ve en su propia celda
+        if (dateStr < originDate || dateStr > entry.due) continue;
+        const subject = isMil ? 'Fase Militar' : (mats[cellKey] || 'Materia');
+        byCol[col].push({ subject, task: entry.task, type: entry.type || 'tarea' });
+      }
+    });
+  });
+  return byCol;
+}
+
+function buildTable() {
+  document.getElementById('week-num').textContent = `Semana ${currentWeek}`;
+  document.getElementById('week-dates').textContent = getWeekDates(currentWeek);
+  document.getElementById('tasks-week-label').textContent = `Semana ${currentWeek}`;
+
+  const wd = weekData();
+  const mats = getCurrentMats();
+  loadEvents();
+
+  const theadRow = document.getElementById('thead-row');
+  for (let col = 0; col <5; col++) {
+    const th = theadRow.children[col+1];
+    th.classList.toggle('holiday-header', isHoliday(currentWeek, col));
+  }
+
+  const tbody = document.getElementById('tbody');
+  tbody.innerHTML = '';
+
+  // Fila de tareas con plazo activo que no son del día actual de la celda
+  const extraByCol = computeExtraTasksByColumn();
+  if (extraByCol.some(arr => arr.length)) {
+    const exTr = document.createElement('tr');
+    exTr.className = 'extra-tasks-row';
+    const labelTd = document.createElement('td');
+    labelTd.className = 'time-cell';
+    labelTd.textContent = '⏳\nPlazos';
+    exTr.appendChild(labelTd);
+    for (let col = 0; col < 5; col++) {
+      const td = document.createElement('td');
+      td.className = 'cell';
+      const items = extraByCol[col];
+      td.innerHTML = items.map(it => `<span class="extra-badge ${it.type}">⏳ ${it.subject}: ${it.task}</span>`).join('');
+      exTr.appendChild(td);
+    }
+    tbody.appendChild(exTr);
+  }
+
+  BLOCKS.forEach(block => {
+    const tr = document.createElement('tr');
+    if (block.type === 'break') {
+      tr.className = 'descanso-row';
+      const td = document.createElement('td'); td.colSpan = 6; td.textContent = block.label;
+      tr.appendChild(td); tbody.appendChild(tr); return;
+    }
+    if (block.type === 'gap') {
+      tr.className = 'gap-row';
+      const td = document.createElement('td'); td.colSpan =6;
+      tr.appendChild(td); tbody.appendChild(tr); return;
+    }
+    const timeCell = document.createElement('td'); timeCell.className = 'time-cell'; timeCell.textContent = block.time;
+    tr.appendChild(timeCell);
+
+    // Only show militar block for grades 9, 10, 11
+    if (block.type === 'militar') {
+      const gradeNum = parseInt(_currentGrade);
+      if (gradeNum < 9) {
+        return; // Skip this block entirely
+      }
+      
+      for (let col = 0; col <5; col++) {
+        const key = `mil-${col}`;
+        const entry = wd[key] || {};
+        const hasTask = entry.task && entry.task.trim() && !isExpired(entry.due);
+        const isDelivered = entry.userStatus && entry.userStatus[getUserKey()] === 'entregada';
+        const holiday = isHoliday(currentWeek, col);
+        const events = getEventsForDate(getDayDate(currentWeek, col));
+
+        const td = document.createElement('td');
+        td.className = (col ===4 ? 'cell blue-fri' : 'cell blue') + (holiday ? ' holiday' : '');
+        if (isDelivered) td.style.opacity = '0.7';
+        if (!holiday) td.onclick = () => openMilModal(key, DAYS[col]);
+
+        let html = '<div class="mat-name">Fase Militar</div>';
+        if (entry.instructor) html += `<div class="instructor-badge">👤 ${entry.instructor}</div>`;
+        if (hasTask) {
+          const taskStyle = isDelivered ? 'text-decoration:line-through; opacity:0.6' : '';
+          html += `<div class="task-snippet-blue" style="${taskStyle}">${entry.task}</div>`;
+          if (entry.due) {
+            const d = new Date(entry.due+'T12:00');
+            html += `<div class="due-badge-blue">📅 ${d.toLocaleDateString('es-CO',{day:'numeric',month:'short'})}</div>`;
+          }
+        }
+        events.forEach(e => {
+          let eventText = `🎪 ${e.name}`;
+          if (e.startTime) {
+            eventText += e.endTime ? ` (${e.startTime}-${e.endTime})` : ` (${e.startTime})`;
+          }
+          html += `<div class="event-badge">${eventText}</div>`;
+        });
+        td.innerHTML = html;
+        tr.appendChild(td);
+      }
+      tbody.appendChild(tr); return;
+    }
+
+    for (let col =0; col <4; col++) {
+      const key = `${block.idx}-${col}`;
+      const mat = mats[key] || '';
+      const entry = wd[key] || {};
+      const canSeeReclamo = entry.type !== 'reclamo' || entry.reclamoUser === getUserKey() || (currentUser && currentUser.isAdmin);
+      const hasTask = entry.task && entry.task.trim() && !isExpired(entry.due) && canSeeReclamo;
+      const isDelivered = entry.userStatus && entry.userStatus[getUserKey()] === 'entregada';
+      const holiday = isHoliday(currentWeek, col);
+      const events = getEventsForDate(getDayDate(currentWeek, col));
+
+      let colorClass = 'green';
+      if (hasTask) {
+        if (isDelivered) colorClass = 'green';
+        else if (entry.type === 'reclamo') colorClass = 'red';
+        else if (entry.type === 'examen') colorClass = 'blue-exam';
+        else colorClass = 'yellow';
+      }
+
+      const td = document.createElement('td');
+      td.className = 'cell ' + colorClass + (holiday ? ' holiday' : '');
+      if (isDelivered) td.style.opacity = '0.7';
+      if (!holiday) td.onclick = () => openRegModal(key, mat, DAYS[col], block.time.replace('\n',' – '));
+
+      let html = `<div class="mat-name">${mat}</div>`;
+      if (hasTask) {
+        const taskStyle = isDelivered ? 'text-decoration:line-through; opacity:0.6' : '';
+        html += `<div class="task-snippet" style="${taskStyle}">${entry.task}</div>`;
+        if (entry.due) {
+          const d = new Date(entry.due+'T12:00');
+          html += `<div class="due-badge">📅 ${d.toLocaleDateString('es-CO',{day:'numeric',month:'short'})}</div>`;
+        }
+      }
+      if (entry.notes && entry.notes.trim() && canSeeReclamo) html += `<div class="notes-snippet">📝 ${entry.notes}</div>`;
+      events.forEach(e => {
+        let eventText = `🎪 ${e.name}`;
+        if (e.startTime) {
+          eventText += e.endTime ? ` (${e.startTime}-${e.endTime})` : ` (${e.startTime})`;
+        }
+        html += `<div class="event-badge">${eventText}</div>`;
+      });
+      td.innerHTML = html;
+      tr.appendChild(td);
+    }
+
+    const col =4;
+    const holiday = isHoliday(currentWeek, col);
+    const events = getEventsForDate(getDayDate(currentWeek, col));
+    const friTd = document.createElement('td');
+    friTd.className = 'cell blue-fri' + (holiday ? ' holiday' : '');
+    friTd.style.verticalAlign = 'middle';
+    friTd.style.textAlign = 'center';
+    let friHtml = `<div class="mat-name" style="color:#185fa5;opacity:.35;font-size:11px;">—</div>`;
+    events.forEach(e => {
+      let eventText = `🎪 ${e.name}`;
+      if (e.startTime) {
+        eventText += e.endTime ? ` (${e.startTime}-${e.endTime})` : ` (${e.startTime})`;
+      }
+      friHtml += `<div class="event-badge">${eventText}</div>`;
+    });
+    friTd.innerHTML = friHtml;
+    tr.appendChild(friTd);
+
+    tbody.appendChild(tr);
+  });
+
+  buildTaskList();
+}
+
+function buildTaskList() {
+  const wd = weekData();
+  const mats = getCurrentMats();
+  const list = document.getElementById('tasks-list');
+  const items = [];
+  const userKey = getUserKey();
+
+  BLOCKS.forEach(block => {
+    if (block.type === 'class') {
+      for (let col=0; col<4; col++) {
+        const key = `${block.idx}-${col}`;
+        const entry = wd[key] || {};
+        if (entry.task && entry.task.trim() && !isExpired(entry.due)) {
+          const userStatus = entry.userStatus && entry.userStatus[userKey];
+          const isMyReclamo = entry.type === 'reclamo' && entry.reclamoUser === userKey;
+          if (entry.type !== 'reclamo' || isMyReclamo || currentUser.isAdmin) {
+            items.push({
+              key, type:'reg', mat:mats[key], day:DAYS[col], time:block.time.replace('\n',' – '),
+              task:entry.task, due:entry.due, taskType:entry.type, status: userStatus || 'pendiente'
+            });
+          }
+        }
+      }
+    }
+    if (block.type === 'militar') {
+      const gradeNum = parseInt(_currentGrade);
+      if (gradeNum >= 9) { // Only show military tasks for grades 9, 10, 11
+        for (let col=0; col<5; col++) {
+          const key = `mil-${col}`;
+          const entry = wd[key] || {};
+          if (entry.task && entry.task.trim() && !isExpired(entry.due)) {
+            const userStatus = entry.userStatus && entry.userStatus[userKey];
+            items.push({
+              key, type:'mil', day:DAYS[col], task:entry.task, due:entry.due, instructor:entry.instructor || '',
+              status: userStatus || 'pendiente'
+            });
+          }
+        }
+      }
+    }
+  });
+
+  if (!items.length) {
+    list.innerHTML = '<div class="no-tasks">¡Sin tareas pendientes esta semana! 🎉</div>';
+    return;
+  }
+
+  list.innerHTML = '<div class="task-cards">' + items.map(i => {
+    const status = i.status || 'pendiente';
+    const cardClassBase = i.type === 'reg' ? (i.taskType === 'reclamo' ? 'reg-red' : (i.taskType === 'examen' ? 'reg-blue' : 'reg')) : 'mil';
+    const statusClass = status === 'entregada' ? 'status-delivered' : '';
+    const dueStr = i.due ? `<div class="tc-due">📅 ${new Date(i.due+'T12:00').toLocaleDateString('es-CO',{weekday:'long',day:'numeric',month:'long'})}</div>` : '';
+    let headerHtml = '';
+    if (i.type === 'reg') {
+      const typeLabel = i.taskType ? `<span style="text-transform:uppercase; font-size:10px; font-weight:bold; margin-right:5px">[${i.taskType}]</span>` : '';
+      headerHtml = `<div class="tc-header"><span class="tc-mat">${typeLabel}${i.mat}</span><span class="tc-day">${i.day} · ${i.time}</span></div>`;
+    } else {
+      const instrStr = i.instructor ? `<div class="tc-instructor">👤 ${i.instructor}</div>` : '';
+      headerHtml = `<div class="tc-header"><span class="tc-mat">🪖 Fase Militar</span><span class="tc-day">${i.day} · 2:30 – 4:00</span></div>${instrStr}`;
+    }
+
+    let actionsHtml = `<div class="tc-actions">
+      <button class="btn-status ${status === 'entregada' ? 'active-delivered' : ''}" onclick="updateTaskStatus('${i.key}', 'entregada')">Entregada</button>
+      <button class="btn-status ${status === 'no-entregada' ? 'active-missing' : ''}" onclick="updateTaskStatus('${i.key}', 'no-entregada')">No Entregada</button>`;
+    if (currentUser.isAdmin) {
+      actionsHtml += `<button class="btn-status ${status === 'aplazada' ? 'active-postponed' : ''}" onclick="updateTaskStatus('${i.key}', 'aplazada')">Aplazada</button>`;
+    }
+    actionsHtml += `</div>`;
+
+    return `<div class="task-card ${cardClassBase} ${statusClass}">${headerHtml}<div class="tc-desc">${i.task}</div>${dueStr}${actionsHtml}</div>`;
+  }).join('') + '</div>';
+}
+
+async function logAudit(action, key, week, grade, oldData, newData) {
+  try {
+    await withRetry(() => supabaseClient.from('audit_logs').insert({
+      cell_key: key,
+      action,
+      old_data: oldData || null,
+      new_data: newData || null,
+      week_number: week,
+      grade,
+      username: getUserKey(),
+      timestamp: new Date().toISOString()
+    }));
+  } catch (e) { console.error('No se pudo registrar el log:', e); }
+}
+
+async function loadAuditLogs() {
+  if (!currentUser || !currentUser.isAdmin) return;
+  const list = document.getElementById('logs-list');
+  if (!list) return;
+  list.innerHTML = '<div class="no-tasks">Cargando...</div>';
+  const { data, error } = await withRetry(() => supabaseClient
+    .from('audit_logs').select('*').order('timestamp', { ascending: false }).limit(150));
+  if (error) { list.innerHTML = '<div class="no-tasks">No se pudieron cargar los logs</div>'; return; }
+  if (!data || !data.length) { list.innerHTML = '<div class="no-tasks">Sin registros todavía</div>'; return; }
+  const actionLabel = { crear: '🆕 Creó', actualizar: '✏️ Actualizó', borrar: '🗑️ Borró' };
+  list.innerHTML = '<div class="task-cards">' + data.map(l => {
+    const when = l.timestamp ? new Date(l.timestamp).toLocaleString('es-CO', { dateStyle: 'short', timeStyle: 'short' }) : '';
+    const label = actionLabel[l.action] || l.action;
+    const taskText = (l.new_data && l.new_data.task) || (l.old_data && l.old_data.task) || '';
+    return `<div class="task-card log">
+      <div class="tc-header"><span class="tc-mat">${label} · ${cellLabel(l.cell_key, l.grade)}</span><span class="tc-day">${when}</span></div>
+      <div class="tc-desc">Usuario: <b>${l.username || '—'}</b> · Grado ${l.grade || '?'}° · Semana ${l.week_number || '?'}</div>
+      ${taskText ? `<div class="tc-desc">"${taskText}"</div>` : ''}
+    </div>`;
+  }).join('') + '</div>';
+}
+
+async function updateTaskStatus(key, status) {
+  const wd = weekData();
+  if (!wd[key]) return;
+  if (status === 'aplazada' && currentUser.isAdmin) { openPostponeModal(key); return; }
+  const oldEntry = JSON.parse(JSON.stringify(wd[key]));
+  if (!wd[key].userStatus) wd[key].userStatus = {};
+  if (wd[key].userStatus[getUserKey()] === status) wd[key].userStatus[getUserKey()] = 'pendiente';
+  else wd[key].userStatus[getUserKey()] = status;
+  await saveToDB(key, wd[key], currentWeek, currentGrade, oldEntry);
+  buildTable();
+}
+
+let postponeKey = null;
+function openPostponeModal(key) {
+  postponeKey = key;
+  const entry = weekData()[key] || {};
+  const select = document.getElementById('postpone-time');
+  if (select.options.length ===0) {
+    BLOCKS.filter(b => b.time).forEach(b => {
+      const opt = document.createElement('option');
+      opt.value = b.time.replace('\n',' – ');
+      opt.textContent = b.time.replace('\n',' – ');
+      select.appendChild(opt);
+    });
+  }
+  document.getElementById('postpone-due').value = entry.due || '';
+  document.getElementById('overlay-postpone').classList.add('open');
+}
+
+document.getElementById('postpone-cancel').onclick = () => document.getElementById('overlay-postpone').classList.remove('open');
+document.getElementById('overlay-postpone').onclick = (e) => {
+  if (e.target === document.getElementById('overlay-postpone')) document.getElementById('overlay-postpone').classList.remove('open');
+};
+
+document.getElementById('postpone-save').onclick = async () => {
+  const newDueStr = document.getElementById('postpone-due').value;
+  const newTime = document.getElementById('postpone-time').value;
+  const wd = weekData();
+  if (wd[postponeKey] && newDueStr) {
+    const trueOld = JSON.parse(JSON.stringify(wd[postponeKey]));
+    const entry = {...wd[postponeKey]};
+    const oldWeek = currentWeek;
+    const oldKey = postponeKey;
+    const oldGrade = currentGrade;
+
+    const dateObj = new Date(newDueStr + 'T12:00:00');
+    const targetWeek = getWeekFromDate(dateObj);
+    const targetDayCol = (dateObj.getDay() + 6) %7;
+
+    if (targetDayCol >4) { showToast('Solo puedes aplazar a días de clase (Lunes a Viernes)', 'error'); return; }
+
+    const targetBlock = BLOCKS.find(b => b.time && b.time.replace('\n',' – ') === newTime);
+    if (!targetBlock) return;
+
+    let targetKey = '';
+    if (targetBlock.type === 'militar') targetKey = `mil-${targetDayCol}`;
+    else targetKey = `${targetBlock.idx}-${targetDayCol}`;
+
+    entry.due = newDueStr;
+    if (!entry.notes) entry.notes = '';
+    entry.notes = `Aplazada para las ${newTime}. ${entry.notes}`;
+
+    delete allData[`${oldGrade}-${oldWeek}`][oldKey];
+    await deleteFromDB(oldKey, oldWeek, oldGrade, trueOld);
+
+    if (!allData[`${oldGrade}-${targetWeek}`]) allData[`${oldGrade}-${targetWeek}`] = {};
+    allData[`${oldGrade}-${targetWeek}`][targetKey] = entry;
+    await saveToDB(targetKey, entry, targetWeek, oldGrade, null);
+
+    document.getElementById('overlay-postpone').classList.remove('open');
+    buildTable();
+    showToast('Tarea aplazada exitosamente!', 'postpone');
+  } else {
+    showToast('Selecciona una fecha válida', 'error');
+  }
+};
+
+document.getElementById('prev-week').onclick = () => { if (currentWeek>1) currentWeek--; buildTable(); };
+document.getElementById('next-week').onclick = () => { currentWeek++; buildTable(); };
+
+let regKey = null;
+let currentRegType = 'tarea';
+
+function setPlazoUI(prefix, hasDue, dueVal) {
+  document.getElementById(`${prefix}-has-due-si`).checked = hasDue;
+  document.getElementById(`${prefix}-has-due-no`).checked = !hasDue;
+  document.getElementById(`${prefix}-due-wrap`).style.display = hasDue ? 'block' : 'none';
+  document.getElementById(`${prefix}-due`).value = dueVal || '';
+}
+
+document.getElementById('rm-has-due-si').onchange = () => { document.getElementById('rm-due-wrap').style.display = 'block'; };
+document.getElementById('rm-has-due-no').onchange = () => { document.getElementById('rm-due-wrap').style.display = 'none'; document.getElementById('rm-due').value = ''; };
+document.getElementById('mm-has-due-si').onchange = () => { document.getElementById('mm-due-wrap').style.display = 'block'; };
+document.getElementById('mm-has-due-no').onchange = () => { document.getElementById('mm-due-wrap').style.display = 'none'; document.getElementById('mm-due').value = ''; };
+
+function openRegModal(key, mat, day, time) {
+  regKey = key;
+  const entry = weekData()[key] || {};
+  document.getElementById('rm-mat').textContent = mat;
+  document.getElementById('rm-sub').textContent = `${day} · ${time} — Semana ${currentWeek} (${getDayDate(currentWeek, DAYS.indexOf(day))})`;
+  document.getElementById('rm-task').value = entry.task || '';
+  document.getElementById('rm-notes').value = entry.notes || '';
+  setPlazoUI('rm', !!entry.due, entry.due);
+  if (!entry.task && !entry.notes) {
+    document.getElementById('reg-flow-type').style.display = 'block';
+    document.getElementById('reg-details').style.display = 'none';
+  } else {
+    currentRegType = entry.type || 'tarea';
+    showRegDetails();
+  }
+  document.getElementById('overlay-reg').classList.add('open');
+}
+
+function setRegType(type) { currentRegType = type; showRegDetails(); }
+
+function showRegDetails() {
+  document.getElementById('reg-flow-type').style.display = 'none';
+  document.getElementById('reg-details').style.display = 'block';
+  const badge = document.getElementById('reg-type-badge');
+  const labelDesc = document.getElementById('label-desc');
+  if (currentRegType === 'tarea') {
+    badge.textContent = 'Tarea'; badge.style.background = 'var(--y-bg)'; badge.style.color = 'var(--y-tx)'; labelDesc.textContent = 'Qué toca hacer';
+  } else if (currentRegType === 'reclamo') {
+    badge.textContent = 'Reclamo'; badge.style.background = 'var(--r-bg)'; badge.style.color = 'var(--r-tx)'; labelDesc.textContent = 'Motivo del reclamo';
+  } else if (currentRegType === 'examen') {
+    badge.textContent = 'Examen'; badge.style.background = 'var(--e-bg)'; badge.style.color = 'var(--e-tx)'; labelDesc.textContent = 'Temas del examen';
+  }
+  setTimeout(() => document.getElementById('rm-task').focus(),80);
+}
+
+document.getElementById('rm-cancel').onclick = () => document.getElementById('overlay-reg').classList.remove('open');
+document.getElementById('overlay-reg').onclick = (e) => { if (e.target === document.getElementById('overlay-reg')) document.getElementById('overlay-reg').classList.remove('open'); };
+
+document.getElementById('rm-save').onclick = async () => {
+  const task = document.getElementById('rm-task').value.trim();
+  const hasDue = document.getElementById('rm-has-due-si').checked;
+  const due = hasDue ? document.getElementById('rm-due').value : '';
+  if (hasDue && !due) { showToast('Selecciona la fecha del plazo, o marca "No"', 'error'); return; }
+  const notes = document.getElementById('rm-notes').value.trim();
+  const wd = weekData();
+  const existingEntry = wd[regKey] || {};
+  const oldEntry = wd[regKey] ? JSON.parse(JSON.stringify(wd[regKey])) : null;
+  const entry = (task || notes) ? {
+    ...existingEntry,
+    task, due, type: currentRegType, notes,
+    reclamoUser: currentRegType === 'reclamo' ? getUserKey() : existingEntry.reclamoUser
+  } : null;
+  if (entry) wd[regKey] = entry; else delete wd[regKey];
+  await saveToDB(regKey, entry, currentWeek, currentGrade, oldEntry);
+  document.getElementById('overlay-reg').classList.remove('open');
+  buildTable();
+  const toastType = currentRegType === 'reclamo' ? 'reclamo' : (currentRegType === 'examen' ? 'examen' : 'task');
+  showToast('Guardado exitosamente!', toastType);
+};
+
+document.getElementById('rm-clear').onclick = async () => {
+  const oldEntry = weekData()[regKey] ? JSON.parse(JSON.stringify(weekData()[regKey])) : null;
+  delete weekData()[regKey]; await deleteFromDB(regKey, currentWeek, currentGrade, oldEntry);
+  document.getElementById('overlay-reg').classList.remove('open'); buildTable();
+};
+
+let milKey = null;
+function openMilModal(key, day) {
+  milKey = key;
+  const entry = weekData()[key] || {};
+  const colIdx = DAYS.indexOf(day);
+  document.getElementById('mm-sub').textContent = `${day} · 2:30 – 4:00 p.m. — Semana ${currentWeek} (${getDayDate(currentWeek, colIdx)})`;
+  document.getElementById('mm-instructor').value = entry.instructor || '';
+  document.getElementById('mm-task').value = entry.task || '';
+  setPlazoUI('mm', !!entry.due, entry.due);
+  document.getElementById('overlay-mil').classList.add('open');
+  setTimeout(() => document.getElementById('mm-instructor').focus(),80);
+}
+document.getElementById('mm-cancel').onclick = () => document.getElementById('overlay-mil').classList.remove('open');
+document.getElementById('overlay-mil').onclick = (e) => { if (e.target === document.getElementById('overlay-mil')) document.getElementById('overlay-mil').classList.remove('open'); };
+document.getElementById('mm-save').onclick = async () => {
+  const instructor = document.getElementById('mm-instructor').value.trim();
+  const task = document.getElementById('mm-task').value.trim();
+  const hasDue = document.getElementById('mm-has-due-si').checked;
+  const due = hasDue ? document.getElementById('mm-due').value : '';
+  if (hasDue && !due) { showToast('Selecciona la fecha del plazo, o marca "No"', 'error'); return; }
+  const wd = weekData();
+  const existingEntry = wd[milKey] || {};
+  const oldEntry = wd[milKey] ? JSON.parse(JSON.stringify(wd[milKey])) : null;
+  const entry = (instructor || task) ? { ...existingEntry, instructor, task, due } : null;
+  if (entry) wd[milKey] = entry; else delete wd[milKey];
+  await saveToDB(milKey, entry, currentWeek, currentGrade, oldEntry);
+  document.getElementById('overlay-mil').classList.remove('open'); buildTable();
+  showToast('Guardado exitosamente!', 'task');
+};
+document.getElementById('mm-clear').onclick = async () => {
+  const oldEntry = weekData()[milKey] ? JSON.parse(JSON.stringify(weekData()[milKey])) : null;
+  delete weekData()[milKey]; await deleteFromDB(milKey, currentWeek, currentGrade, oldEntry);
+  document.getElementById('overlay-mil').classList.remove('open'); buildTable();
+};
+
+/* ================= CALCULADOR DE NOTAS ================= */
+// Reemplaza esto con la URL real de tu backend en Render una vez desplegado
+// (el que genera main.py + Dockerfile), ej: "https://api-notas.onrender.com"
+const NOTAS_API_URL = 'https://pruebapaginaweb-qlq7.onrender.com';
+
+function formatearErrorAPI(err) {
+  // FastAPI puede devolver detail como:
+  //  - un string simple: "Usuario o contraseña incorrectos."
+  //  - una lista de errores de validación (422): [{loc, msg, type}, ...]
+  if (!err || !err.detail) return 'Ocurrió un error al consultar las notas.';
+  if (typeof err.detail === 'string') return err.detail;
+  if (Array.isArray(err.detail)) {
+    return err.detail.map(d => {
+      const campo = Array.isArray(d.loc) ? d.loc[d.loc.length - 1] : '';
+      return campo ? `${campo}: ${d.msg}` : d.msg;
+    }).join(' | ');
+  }
+  try { return JSON.stringify(err.detail); } catch (e) { return 'Ocurrió un error al consultar las notas.'; }
+}
+
+function openNotasModal() {
+  document.getElementById('notas-mensaje').textContent = '';
+  document.getElementById('notas-resultado').innerHTML = '';
+  document.getElementById('notas-usuario').value = '';
+  document.getElementById('notas-contrasena').value = '';
+  document.getElementById('overlay-notas').classList.add('open');
+  setTimeout(() => document.getElementById('notas-usuario').focus(), 80);
+}
+
+document.getElementById('notas-cancel').onclick = () => document.getElementById('overlay-notas').classList.remove('open');
+document.getElementById('overlay-notas').onclick = (e) => {
+  if (e.target === document.getElementById('overlay-notas')) document.getElementById('overlay-notas').classList.remove('open');
+};
+
+document.getElementById('notas-consultar').onclick = async () => {
+  const usuario = document.getElementById('notas-usuario').value.trim();
+  const contrasena = document.getElementById('notas-contrasena').value.trim();
+  const mensaje = document.getElementById('notas-mensaje');
+  const resultado = document.getElementById('notas-resultado');
+  const btn = document.getElementById('notas-consultar');
+
+  if (!usuario || !contrasena) { mensaje.textContent = 'Completa usuario y contraseña.'; return; }
+
+  btn.disabled = true;
+  mensaje.textContent = 'Consultando todas tus materias... esto puede tardar hasta 1 minuto.';
+  resultado.innerHTML = '';
+
+  try {
+    const resp = await fetch(`${NOTAS_API_URL}/api/notas`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ usuario, contrasena })
+    });
+
+    if (!resp.ok) {
+      const err = await resp.json().catch(() => ({}));
+      mensaje.textContent = formatearErrorAPI(err);
+      console.error('Detalle del error del backend:', err);
+      return;
+    }
+
+    const detalle = await resp.json();
+    mensaje.textContent = '';
+    renderNotasResultado(detalle);
+  } catch (err) {
+    // "Failed to fetch" cae aquí: casi siempre es NOTAS_API_URL sin
+    // desplegar, CORS mal configurado, o el backend dormido/caído.
+    mensaje.textContent = 'No se pudo conectar con el servidor. Revisa que el backend esté desplegado y que NOTAS_API_URL sea correcta.';
+    console.error('Error de conexión con el backend de notas:', err);
+  } finally {
+    btn.disabled = false;
+  }
+};
+
+function renderNotasResultado(detalle) {
+  const resultado = document.getElementById('notas-resultado');
+  const materias = (detalle && detalle.materias) || [];
+
+  if (!materias.length) {
+    resultado.innerHTML = '<div class="no-tasks">No se encontraron materias con notas.</div>';
+    return;
+  }
+
+  let html = '<div class="notas-simple-list">';
+  materias.forEach(m => {
+    const passed = m.promedio <= 1;
+    const val = passed ? 'Ya pasó pa el año' : m.promedio.toFixed(2);
+    html += `<div class="notas-simple-item">
+      <span class="notas-simple-mat">${m.asignatura}</span>
+      <span class="notas-simple-val${passed ? ' notas-simple-val-warn' : ''}">${val}</span>
+    </div>`;
+  });
+  html += '</div>';
+  resultado.innerHTML = html;
+}
+
+async function loadInitialData({ silent = false } = {}) {
+  setConnectionStatus('connecting');
+  const { data, error } = await withRetry(() => supabaseClient.from('schedules').select('*'));
+  if (error) { setConnectionStatus('offline'); if (!silent) showToast(friendlyErrorMessage(error,'cargar los datos'),'error'); return false; }
+  allData = {};
+  data.forEach(row => {
+    const key = `${row.grade}-${row.week_number}`;
+    if (!allData[key]) allData[key] = {};
+    allData[key][row.cell_key] = {
+      task: row.task,
+      due: row.due_date,
+      instructor: row.instructor,
+      type: row.type || 'tarea',
+      notes: row.notes || '',
+      userStatus: row.user_status || {},
+      reclamoUser: row.reclamo_user
+    };
+  });
+  setConnectionStatus('online');
+  buildTable();
+  return true;
+}
+
+async function initRealtime() {
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('sw.js').then(reg => console.log('SW registered:', reg)).catch(err => console.error('SW error:', err));
+  }
+  await loadInitialData();
+  refreshNotifButton();
+  supabaseClient
+    .channel('public:schedules')
+    .on('postgres_changes', { event:'*', schema:'public', table:'schedules' }, payload => {
+      const row = payload.new || payload.old;
+      const key = `${row.grade}-${row.week_number}`;
+      if (!allData[key]) allData[key] = {};
+      if (payload.eventType === 'DELETE') delete allData[key][row.cell_key];
+      else allData[key][row.cell_key] = {
+        task: row.task, due: row.due_date, instructor: row.instructor, type: row.type || 'tarea', notes: row.notes || '',
+        userStatus: row.user_status || {}, reclamoUser: row.reclamo_user
+      };
+      buildTable();
+    })
+    .subscribe(status => {
+      console.log('Realtime status:', status);
+      if (status === 'SUBSCRIBED') setConnectionStatus('online');
+      else if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT' || status === 'CLOSED') setConnectionStatus('offline');
+    });
+}
+
+async function saveToDB(key, entry, week = currentWeek, grade = currentGrade, oldEntry = null) {
+  const formattedDate = (entry && entry.due && entry.due.trim() !== '') ? entry.due : null;
+  const { error } = await withRetry(() => supabaseClient
+    .from('schedules')
+    .upsert({
+      grade, week_number: week, cell_key: key,
+      task: entry ? entry.task : null, due_date: formattedDate,
+      instructor: entry ? entry.instructor : null, type: entry ? entry.type : null,
+      notes: entry ? entry.notes : null, user_status: entry ? entry.userStatus : null,
+      reclamo_user: entry ? entry.reclamoUser : null, updated_at: new Date().toISOString()
+    }, { onConflict: 'grade,week_number,cell_key' }));
+  if (error) { setConnectionStatus('offline'); showToast(friendlyErrorMessage(error,'guardar'),'error'); }
+  else {
+    setConnectionStatus('online');
+    logAudit(oldEntry ? 'actualizar' : 'crear', key, week, grade, oldEntry, entry);
+    if (currentUser && currentUser.isAdmin) loadAuditLogs();
+  }
+}
+
+async function deleteFromDB(key, week = currentWeek, grade = currentGrade, oldEntry = null) {
+  const { error } = await withRetry(() => supabaseClient
+    .from('schedules')
+    .delete()
+    .match({ grade, week_number: week, cell_key: key }));
+  if (error) { setConnectionStatus('offline'); showToast(friendlyErrorMessage(error,'borrar'),'error'); }
+  else {
+    setConnectionStatus('online');
+    logAudit('borrar', key, week, grade, oldEntry, null);
+    if (currentUser && currentUser.isAdmin) loadAuditLogs();
+  }
+}
+
+const VAPID_PUBLIC_KEY = 'BFLeJdUUDqGKu4Z6ew02VHWR66R9FzasPkYaMebTKx-TQyNxtHoz7owDxdscIGe-uQvbOd7WmuA-Av6khtvLi78';
+
+function urlBase64ToUint8Array(base64String) {
+  const padding = '='.repeat((4 - base64String.length %4) %4);
+  const base64 = (base64String + padding).replace(/-/g,'+').replace(/_/g,'/');
+  const rawData = atob(base64);
+  const outputArray = new Uint8Array(rawData.length);
+  for (let i=0; i<rawData.length; i++) outputArray[i] = rawData.charCodeAt(i);
+  return outputArray;
+}
+
+function subToRow(sub) { const json = sub.toJSON(); return { endpoint: json.endpoint, p256dh: json.keys.p256dh, auth: json.keys.auth }; }
+
+async function getExistingSubscription() {
+  if (!('serviceWorker' in navigator) || !('PushManager' in window)) return null;
+  const reg = await navigator.serviceWorker.ready;
+  return reg.pushManager.getSubscription();
+}
+
+async function refreshNotifButton() {
+  const btn = document.getElementById('notif-toggle');
+  if (!btn) return;
+  if (!('Notification' in window) || !('serviceWorker' in navigator) || !('PushManager' in window)) { btn.disabled = true; btn.textContent = '🔕 No disponible'; return; }
+  if (Notification.permission === 'denied') { btn.classList.remove('active'); btn.textContent = '🔕 Notificaciones bloqueadas'; return; }
+  const sub = await getExistingSubscription();
+  if (sub) { btn.classList.add('active'); btn.textContent = '🔔 Notificaciones activadas'; }
+  else { btn.classList.remove('active'); btn.textContent = '🔕 Activar notificaciones'; }
+}
+
+async function enablePushNotifications() {
+  const permission = await Notification.requestPermission();
+  if (permission !== 'granted') { showToast('Permiso de notificaciones denegado','error'); await refreshNotifButton(); return; }
+  try {
+    const reg = await navigator.serviceWorker.ready;
+    let sub = await reg.pushManager.getSubscription();
+    if (!sub) {
+      sub = await reg.pushManager.subscribe({ userVisibleOnly:true, applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY) });
+    }
+    const { error } = await withRetry(() => supabaseClient.from('push_subscriptions').insert(subToRow(sub)));
+    if (error) showToast(friendlyErrorMessage(error,'activar notificaciones'),'error');
+    else showToast('Notificaciones activadas!','update');
+  } catch (err) { console.error(err); showToast('Error al activar notificaciones: ' + err.message,'error'); }
+  await refreshNotifButton();
+}
+
+async function disablePushNotifications() {
+  try {
+    const sub = await getExistingSubscription();
+    if (sub) {
+      const row = subToRow(sub);
+      await sub.unsubscribe();
+      await withRetry(() => supabaseClient.from('push_subscriptions').delete().match({ endpoint: row.endpoint }));
+    }
+    showToast('Notificaciones desactivadas');
+  } catch (err) { console.error(err); showToast('Error al desactivar notificaciones: ' + err.message,'error'); }
+  await refreshNotifButton();
+}
+
+document.getElementById('notif-toggle').addEventListener('click', async () => {
+  const btn = document.getElementById('notif-toggle'); if (btn.disabled) return;
+  const sub = await getExistingSubscription(); if (sub) await disablePushNotifications(); else await enablePushNotifications();
+});
+
+window.addEventListener('online', () => loadInitialData({ silent:true }));
+window.addEventListener('offline', () => setConnectionStatus('offline'));
+
+initAuth();
+</script>
+</body>
+</html>
